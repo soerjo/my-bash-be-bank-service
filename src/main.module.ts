@@ -7,7 +7,7 @@ import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ResponseInterceptor } from './common/interceptor/response.interceptor';
 import { HttpExceptionFilter } from './common/interceptor/http-exception.interceptor';
 import { JwtModule } from '@nestjs/jwt';
-import { ExampleModule } from './modules/example/example.module';
+// import { ExampleModule } from './modules/example/example.module';
 import { BankModule } from './modules/bank/bank.module';
 import { CustomerModule } from './modules/customer/customer.module';
 import { TransactionModule } from './modules/transaction/transaction.module';
@@ -24,7 +24,7 @@ import { TransactionModule } from './modules/transaction/transaction.module';
       useFactory: async (configService: ConfigService) => configService.get('typeorm'),
     }),
     JwtModule.register({ global: true }),
-    ExampleModule,
+    // ExampleModule,
     BankModule,
     CustomerModule,
     TransactionModule,

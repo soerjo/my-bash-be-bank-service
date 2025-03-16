@@ -1,8 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { BankService } from '../services/bank.service';
 import { CreateBankDto } from '../dto/create-bank.dto';
 import { UpdateBankDto } from '../dto/update-bank.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/common/guard/jwt-auth.guard';
+import { RolesGuard } from 'src/common/guard/role.guard';
 
+@ApiTags('Bank')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@ApiBearerAuth()
 @Controller('bank')
 export class BankController {
   constructor(private readonly bankService: BankService) {}
