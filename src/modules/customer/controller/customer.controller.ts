@@ -1,26 +1,36 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { CustomerService } from '../services/customer.service';
 import { CreateCustomerDto } from '../dto/create-customer.dto';
 import { UpdateCustomerDto } from '../dto/update-customer.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/common/guard/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guard/role.guard';
+import { Roles } from 'src/common/decorator/role.decorator';
+import { RoleEnum } from 'src/common/constant/role.constant';
+import { CurrentUser } from 'src/common/decorator/jwt-payload.decorator';
+import { IJwtPayload } from 'src/common/interface/jwt-payload.interface';
+import { FindCustomerDto } from '../dto/find-customer.dto';
 
 @ApiTags('Cutomer')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
+@Roles([
+  RoleEnum.SYSTEM_ADMIN,
+  RoleEnum.SUPER_ADMIN,
+  RoleEnum.USER_SUPER_ADMIN_BANK,
+])
 @Controller('customer')
 export class CustomerController {
   constructor(private readonly customerService: CustomerService) {}
 
   @Post()
-  create(@Body() createCustomerDto: CreateCustomerDto) {
-    return this.customerService.create(createCustomerDto);
+  create(@CurrentUser() userPayload: IJwtPayload, @Body() createCustomerDto: CreateCustomerDto) {
+    return this.customerService.create(createCustomerDto, userPayload);
   }
 
   @Get()
-  findAll() {
-    return this.customerService.findAll();
+  findAll(@CurrentUser() userPayload: IJwtPayload, @Query() dto: FindCustomerDto) {
+    return this.customerService.findAll(dto, userPayload);
   }
 
   @Get(':id')

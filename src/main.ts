@@ -20,13 +20,14 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
 
+  app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.enableCors({ credentials: true });
   // app.use(morgan('short'));
 
   const theme = new SwaggerTheme();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup(':v/docs', app, document, {
+  SwaggerModule.setup('/docs', app, document, {
     swaggerOptions: {
       filter: true, // Enable the search bar
       showRequestDuration: true, // Show the duration of each request

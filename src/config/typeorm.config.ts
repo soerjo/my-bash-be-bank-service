@@ -14,6 +14,7 @@ const config: DataSourceOptions = {
   migrations: [__dirname + '/../migrations/*-migration.ts'],
   migrationsRun: false,
   logging: true,
+  migrationsTableName: 'migrations-bank-service',
   // synchronize: configService.get(`NODE_ENV`) === 'development' || false,
 };
 
