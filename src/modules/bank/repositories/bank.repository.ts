@@ -3,7 +3,7 @@ import { BankEntity } from "../entities/bank.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { In, Repository } from "typeorm";
 import { CreateBankDto } from "../dto/create-bank.dto";
-import { bankGenerateCode } from "src/utils/bank-code-generator.utils";
+import { bankGenerateCode } from "../../../utils/bank-code-generator.utils";
 import { IJwtPayload } from "../../../common/interface/jwt-payload.interface";
 
 @Injectable()

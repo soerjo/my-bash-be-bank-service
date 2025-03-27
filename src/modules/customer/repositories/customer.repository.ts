@@ -2,8 +2,8 @@ import { Injectable } from "@nestjs/common";
 import { DataSource, EntityManager, Repository } from "typeorm";
 import { CustomerEntity } from "../entities/customer.entity";
 import { FindCustomerDto } from "../dto/find-customer.dto";
-import { IJwtPayload } from "src/common/interface/jwt-payload.interface";
-import { decrypt } from "src/utils/encrypt.util";
+import { IJwtPayload } from "../../../common/interface/jwt-payload.interface";
+import { decrypt } from "../../../utils/encrypt.util";
 
 @Injectable()
 export class CustomerRepository extends Repository<CustomerEntity> {
