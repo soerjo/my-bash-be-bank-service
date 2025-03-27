@@ -7,19 +7,27 @@ export class CustomerEntity extends MainEntityAbstract {
   @Column({ unique: true, nullable: true })
   last_transaction_id: string; // just success transaction id
 
-  @Column({default: 0})
+  @Column({default: 0, type: 'numeric', precision: 18, scale: 2})
   balance: number;
 
-  @Column()
+  @Column({
+    nullable: true,
+  })
   user_id: number;
 
-  @Column({ unique: true })
+  @Column({
+    nullable: true,
+  })
+  bank_id: number;
+
+  @Column({ unique: true, })
   private_account_number: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true, })
   public_account_number: string;
 
   @Column({
+    nullable: true,
     transformer: {
       to: (value: string) => encrypt(value), // Encrypt before saving
       from: (value: string) => decrypt(value), // Decrypt when retrieving
@@ -28,6 +36,7 @@ export class CustomerEntity extends MainEntityAbstract {
   full_name: string;
 
   @Column({
+    nullable: true,
     transformer: {
       to: (value: string) => encrypt(value), // Encrypt before saving
       from: (value: string) => decrypt(value), // Decrypt when retrieving
@@ -36,6 +45,7 @@ export class CustomerEntity extends MainEntityAbstract {
   name: string;
 
   @Column({
+    nullable: true,
     transformer: {
       to: (value: string) => encrypt(value), // Encrypt before saving
       from: (value: string) => decrypt(value), // Decrypt when retrieving
@@ -43,10 +53,13 @@ export class CustomerEntity extends MainEntityAbstract {
   })
   identity_number: string;
 
-  @Column()
+  @Column({
+    nullable: true,
+  })
   photo_url: string;
 
   @Column({
+    nullable: true,
     transformer: {
       to: (value: string) => encrypt(value), // Encrypt before saving
       from: (value: string) => decrypt(value), // Decrypt when retrieving
@@ -55,6 +68,7 @@ export class CustomerEntity extends MainEntityAbstract {
   province: string;
 
   @Column({
+    nullable: true,
     transformer: {
       to: (value: string) => encrypt(value), // Encrypt before saving
       from: (value: string) => decrypt(value), // Decrypt when retrieving
@@ -63,6 +77,7 @@ export class CustomerEntity extends MainEntityAbstract {
   regency: string;
 
   @Column({
+    nullable: true,
     transformer: {
       to: (value: string) => encrypt(value), // Encrypt before saving
       from: (value: string) => decrypt(value), // Decrypt when retrieving
@@ -71,6 +86,7 @@ export class CustomerEntity extends MainEntityAbstract {
   district: string;
 
   @Column({
+    nullable: true,
     transformer: {
       to: (value: string) => encrypt(value), // Encrypt before saving
       from: (value: string) => decrypt(value), // Decrypt when retrieving
@@ -80,6 +96,7 @@ export class CustomerEntity extends MainEntityAbstract {
 
   @Column({
     type: 'text',
+    nullable: true,
     transformer: {
       to: (value: string) => encrypt(value), // Encrypt before saving
       from: (value: string) => decrypt(value), // Decrypt when retrieving
@@ -88,6 +105,7 @@ export class CustomerEntity extends MainEntityAbstract {
   address: string;
 
   @Column({
+    nullable: true,
     transformer: {
       to: (value: string) => encrypt(value), // Encrypt before saving
       from: (value: string) => decrypt(value), // Decrypt when retrieving
@@ -96,6 +114,7 @@ export class CustomerEntity extends MainEntityAbstract {
   postal_code: string;
 
   @Column({
+    nullable: true,
     transformer: {
       to: (value: string) => encrypt(value), // Encrypt before saving
       from: (value: string) => decrypt(value), // Decrypt when retrieving

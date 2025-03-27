@@ -15,6 +15,7 @@ const config: DataSourceOptions = {
   migrationsRun: false,
   logging: true,
   migrationsTableName: 'migrations-bank-service',
+  schema: 'public'
   // synchronize: configService.get(`NODE_ENV`) === 'development' || false,
 };
 

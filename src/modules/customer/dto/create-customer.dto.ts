@@ -3,77 +3,79 @@ import { IsNotEmpty, IsNumber, IsNumberString, IsOptional, IsString } from "clas
 
 export class CreateCustomerDto {
     
-    last_transaction_id: string;
+    last_transaction_id?: string;
 
-    balance: number;
+    balance?: number;
     
+    @IsOptional()
     @IsNumber()
-    @IsNotEmpty()
     @ApiProperty()
-    user_id: number;
+    user_id?: number;
 
     @IsNumberString()
     @IsOptional()
     @ApiPropertyOptional()
-    private_account_number: string;
+    private_account_number?: string;
 
     @IsNumberString()
     @IsOptional()
     @ApiPropertyOptional()
-    public_account_number: string;
+    public_account_number?: string;
 
+    @IsOptional()
     @IsString()
-    @IsNotEmpty()
     @ApiProperty()
-    full_name: string;
+    full_name?: string;
 
+    @IsOptional()
     @IsString()
-    @IsNotEmpty()
     @ApiProperty()
-    name: string;
+    name?: string;
 
+    @IsOptional()
     @IsNumberString()
-    @IsNotEmpty()
     @ApiProperty()
-    identity_number: string;
+    identity_number?: string;
 
     @IsString()
     @IsOptional()
     @ApiPropertyOptional()
-    photo_url: string;
+    photo_url?: string;
 
+    @IsOptional()
     @IsString()
-    @IsNotEmpty()
     @ApiProperty()
-    province: string;
+    province?: string;
 
+    @IsOptional()
     @IsString()
-    @IsNotEmpty()
     @ApiProperty()
-    regency: string;
+    regency?: string;
 
+    @IsOptional()
     @IsString()
-    @IsNotEmpty()
     @ApiProperty()
-    district: string;
+    district?: string;
 
+    @IsOptional()
     @IsString()
-    @IsNotEmpty()
     @ApiProperty()
-    village: string;
+    village?: string;
 
+    @IsOptional()
     @IsString()
-    @IsNotEmpty()
     @ApiProperty()
-    address: string;
+    address?: string;
 
+    @IsOptional()
     @IsNumberString()
-    @IsNotEmpty()
     @ApiProperty()
-    postal_code: string;
+    postal_code?: string;
 
+    @IsOptional()
     @IsNumberString()
-    @IsNotEmpty()
     @ApiProperty()
-    phone: string;
+    phone?: string;
+
+    created_by?: number;
 }

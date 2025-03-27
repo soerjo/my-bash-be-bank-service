@@ -10,6 +10,7 @@ interface IAppConfig {
   ENCRYPT_KEY: string;
   DATABASE_URL: string;
   PUBLIC_KEY: string;
+  MONGODB_URI: string;
 }
 
 const configService = new ConfigService();
@@ -20,6 +21,7 @@ const configs: IAppConfig = {
   ENCRYPT_KEY: configService.get(`ENCRYPT_KEY`),
   DATABASE_URL: configService.get(`DATABASE_URL`),
   PUBLIC_KEY: configService.get(`PUBLIC_KEY`),
+  MONGODB_URI: configService.get(`MONGODB_URI`),
 };
 
 const schema = Joi.object<IAppConfig>({
@@ -29,9 +31,12 @@ const schema = Joi.object<IAppConfig>({
   ENCRYPT_KEY: Joi.string().required(),
   DATABASE_URL: Joi.string().required(),
   PUBLIC_KEY: Joi.string().required(),
+  MONGODB_URI: Joi.string().required(),
 });
 
 export default registerAs('app_configs', () => {
+
+  console.log({configs})
   const { value, error } = schema.validate(configs, { abortEarly: false });
 
   if (error) {

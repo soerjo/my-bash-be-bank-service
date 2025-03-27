@@ -25,7 +25,10 @@ export class CustomerController {
 
   @Post()
   create(@CurrentUser() userPayload: IJwtPayload, @Body() createCustomerDto: CreateCustomerDto) {
-    return this.customerService.create(createCustomerDto, userPayload);
+    return this.customerService.create({
+      ...createCustomerDto,
+    created_by: userPayload.id,
+  });
   }
 
   @Get()
@@ -38,10 +41,10 @@ export class CustomerController {
     return this.customerService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCustomerDto: UpdateCustomerDto) {
-    return this.customerService.update(+id, updateCustomerDto);
-  }
+  // @Patch(':id')
+  // update(@Param('id') id: string, @Body() updateCustomerDto: UpdateCustomerDto) {
+  //   return this.customerService.update(+id, updateCustomerDto);
+  // }
 
   @Delete(':id')
   remove(@Param('id') id: string) {

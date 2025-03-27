@@ -11,6 +11,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { BankModule } from './modules/bank/bank.module';
 import { CustomerModule } from './modules/customer/customer.module';
 import { TransactionModule } from './modules/transaction/transaction.module';
+import { IntegrationsModule } from './modules/integrations/integration.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { TransactionModule } from './modules/transaction/transaction.module';
     BankModule,
     CustomerModule,
     TransactionModule,
+    IntegrationsModule,
     // AuthModule,
     // UserModule,
     // other module...

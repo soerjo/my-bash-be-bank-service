@@ -8,7 +8,7 @@ import {
 
 export class HistoryEntityAbstract extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
-  id: number;
+  id: string;
 
   @Exclude()
   @Column({ nullable: false, default: 0 })
