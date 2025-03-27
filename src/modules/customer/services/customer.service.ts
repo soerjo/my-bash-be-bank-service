@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateCustomerDto } from '../dto/create-customer.dto';
 import { UpdateCustomerDto } from '../dto/update-customer.dto';
-import { IJwtPayload } from 'src/common/interface/jwt-payload.interface';
+import { IJwtPayload } from '../../../common/interface/jwt-payload.interface';
 import { CustomerRepository } from '../repositories/customer.repository';
 import { EntityManager } from 'typeorm';
 import { FindCustomerDto } from '../dto/find-customer.dto';
-import { generateUniqueNumber } from 'src/utils/unique-number-generator.util';
+import { generateUniqueNumber } from '../../../utils/unique-number-generator.util';
 import { CustomerEntity } from '../entities/customer.entity';
 
 @Injectable()

@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { CreateIntegrationDto } from '../dto/create-integration.dto';
 import { UpdateIntegrationDto } from '../dto/update-integration.dto';
 import { MongooseCustomerService } from '../../mongoose-customer/services/mongoose-customer.service';
-import { CustomerService } from 'src/modules/customer/services/customer.service';
+import { CustomerService } from '../../../../modules/customer/services/customer.service';
 import { DataSource } from 'typeorm';
-import { TransactionService } from 'src/modules/transaction/services/transaction.service';
+import { TransactionService } from '../../../../modules/transaction/services/transaction.service';
 
 @Injectable()
 export class IntegrationService {

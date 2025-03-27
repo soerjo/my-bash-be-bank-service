@@ -2,9 +2,9 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateBankDto } from '../dto/create-bank.dto';
 import { UpdateBankDto } from '../dto/update-bank.dto';
 import { BankRepository } from '../repositories/bank.repository';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { IJwtPayload } from 'src/common/interface/jwt-payload.interface';
-import { RoleEnum } from 'src/common/constant/role.constant';
+import { PaginationDto } from '../../../common/dto/pagination.dto';
+import { IJwtPayload } from '../../../common/interface/jwt-payload.interface';
+import { RoleEnum } from '../../../common/constant/role.constant';
 
 @Injectable()
 export class BankService {
