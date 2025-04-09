@@ -45,8 +45,4 @@ export class TransactionEntity extends HistoryEntityAbstract {
     @ManyToOne(() => TransactionTypeEntity)
     @JoinColumn({ name: 'transaction_type_id', referencedColumnName: 'transaction_type_id'  })
     transactionType: TransactionTypeEntity;
-
-    @OneToOne(() => TransactionEntity)
-    @JoinColumn({name: 'last_transaction_id', referencedColumnName: 'id' })
-    last_transaction?: TransactionEntity;
 }
