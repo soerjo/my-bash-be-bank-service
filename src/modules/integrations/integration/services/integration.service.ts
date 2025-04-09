@@ -48,15 +48,18 @@ export class IntegrationService {
             return; 
           }
 
+          // create customer account
           const customer = await this.customerService.create(
             {
               public_account_number: dataVar[index].accountNumber,
               full_name: dataVar[index].fullName,
               name: dataVar[index].username,
+              password: dataVar[index]?.password ?? dataVar[index].accountNumber,
             },
             manager,
           );
 
+          // generate transaction to init balance
           const transaction = await this.transactionService.create(
             {
               customer_id: customer.id,

@@ -3,7 +3,7 @@ import { MainEntityAbstract } from "../../../common/abstract/main-entity.abstrac
 
 @Entity({ name: 'transaction_type', schema: 'bank' })
 export class TransactionTypeEntity extends MainEntityAbstract {
-    @Column()
+    @Column({unique: true})
     transaction_type_id: number;
 
     @Column()
@@ -12,6 +12,6 @@ export class TransactionTypeEntity extends MainEntityAbstract {
     @Column()
     code: string;
 
-    @Column()
-    description: string;
+    @Column({nullable: true})
+    description?: string;
 }

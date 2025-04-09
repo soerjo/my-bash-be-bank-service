@@ -1,14 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { TransactionService } from '../services/transaction.service';
 import { CreateTransactionDto } from '../dto/create-transaction.dto';
 import { UpdateTransactionDto } from '../dto/update-transaction.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../common/guard/jwt-auth.guard';
 import { RolesGuard } from '../../../common/guard/role.guard';
+import { GetLastTransactionDto } from '../dto/getLastTransaction.dto';
 
 @ApiTags('Transaction')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@ApiBearerAuth()
+// @UseGuards(JwtAuthGuard, RolesGuard)
+// @ApiBearerAuth()
 @Controller('transaction')
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
@@ -21,6 +22,12 @@ export class TransactionController {
   @Get()
   findAll() {
     return this.transactionService.findAll();
+  }
+
+  @Get('last-transaction/:private_number')
+  getTransactionByPrivateAccountNumber(@Param('private_number') private_number: string, @Query() dto: GetLastTransactionDto) {
+    // return this.transactionService.getLastTransaction(private_number);
+    return "success"
   }
 
   @Get(':id')

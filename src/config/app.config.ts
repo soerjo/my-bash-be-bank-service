@@ -11,6 +11,9 @@ interface IAppConfig {
   DATABASE_URL: string;
   PUBLIC_KEY: string;
   MONGODB_URI: string;
+  USER_SERVICE_URL: string;
+  WAREHOUSE_SERVICE_URL?: string;
+  PICKUP_SERVICE_URL?: string;
 }
 
 const configService = new ConfigService();
@@ -22,6 +25,7 @@ const configs: IAppConfig = {
   DATABASE_URL: configService.get(`DATABASE_URL`),
   PUBLIC_KEY: configService.get(`PUBLIC_KEY`),
   MONGODB_URI: configService.get(`MONGODB_URI`),
+  USER_SERVICE_URL: configService.get(`USER_SERVICE_URL`),
 };
 
 const schema = Joi.object<IAppConfig>({
@@ -32,11 +36,10 @@ const schema = Joi.object<IAppConfig>({
   DATABASE_URL: Joi.string().required(),
   PUBLIC_KEY: Joi.string().required(),
   MONGODB_URI: Joi.string().required(),
+  USER_SERVICE_URL: Joi.string().required(),
 });
 
 export default registerAs('app_configs', () => {
-
-  console.log({configs})
   const { value, error } = schema.validate(configs, { abortEarly: false });
 
   if (error) {

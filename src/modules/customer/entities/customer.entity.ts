@@ -1,4 +1,4 @@
-import { decrypt, encrypt } from '../../../utils/encrypt.util';
+import { decrypt, encrypt, staticDecrypt, staticEncrypt } from '../../../utils/encrypt.util';
 import { MainEntityAbstract } from '../../../common/abstract/main-entity.abstract';
 import { Column, Entity } from 'typeorm';
 
@@ -25,6 +25,24 @@ export class CustomerEntity extends MainEntityAbstract {
 
   @Column({ unique: true, })
   public_account_number: string;
+
+  @Column({
+    nullable: true,
+    transformer: {
+      to: (value: string) => staticEncrypt(value), // Encrypt before saving
+      from: (value: string) => staticDecrypt(value), // Decrypt when retrieving
+    },
+  })
+  password: string;
+
+  @Column({
+    nullable: true,
+    transformer: {
+      to: (value: string) => staticEncrypt(value), // Encrypt before saving
+      from: (value: string) => staticDecrypt(value), // Decrypt when retrieving
+    },
+  })
+  temp_password: string;
 
   @Column({
     nullable: true,

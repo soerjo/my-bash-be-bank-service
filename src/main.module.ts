@@ -12,6 +12,7 @@ import { BankModule } from './modules/bank/bank.module';
 import { CustomerModule } from './modules/customer/customer.module';
 import { TransactionModule } from './modules/transaction/transaction.module';
 import { IntegrationsModule } from './modules/integrations/integration.module';
+import { UserServiceModule } from './modules/user-service/user-service.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { IntegrationsModule } from './modules/integrations/integration.module';
     CustomerModule,
     TransactionModule,
     IntegrationsModule,
+    UserServiceModule,
     // AuthModule,
     // UserModule,
     // other module...

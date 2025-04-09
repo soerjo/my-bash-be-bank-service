@@ -6,6 +6,8 @@ export class CreateCustomerDto {
     last_transaction_id?: string;
 
     balance?: number;
+
+    password: string;
     
     @IsOptional()
     @IsNumber()
