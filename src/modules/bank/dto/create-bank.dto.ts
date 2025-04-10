@@ -5,45 +5,45 @@ export class CreateBankDto {
     @IsString()
     @IsNotEmpty()
     @ApiProperty()
-    name: string;    
-
+    name: string;  
+    
     @IsString()
     @IsNotEmpty()
     @ApiProperty()
-    province: string;
-
-    @IsString()
-    @IsNotEmpty()
-    @ApiProperty()
-    regency: string;
-
-    @IsString()
-    @IsNotEmpty()
-    @ApiProperty()
-    district: string;
-
-    @IsString()
-    @IsNotEmpty()
-    @ApiProperty()
-    village: string;
-
-    @IsString()
-    @IsNotEmpty()
-    @ApiProperty()
-    address: string;
-
-    @IsString()
-    @IsNotEmpty()
-    @ApiProperty()
-    postal_code: string;
-
-    @IsString()
-    @IsNotEmpty()
-    @ApiProperty()
-    phone: string;
+    email: string;
 
     @IsOptional()
-    @IsNumber()
     @ApiPropertyOptional()
-    owner_id: number;
+    @IsString()
+    province: string;
+
+    @IsOptional()
+    @ApiPropertyOptional()
+    @IsString()
+    regency: string;
+
+    @IsOptional()
+    @ApiPropertyOptional()
+    @IsString()
+    district: string;
+
+    @IsOptional()
+    @ApiPropertyOptional()
+    @IsString()
+    village: string;
+
+    @IsOptional()
+    @ApiPropertyOptional()
+    @IsString()
+    address: string;
+
+    @IsOptional()
+    @ApiPropertyOptional()
+    @IsString()
+    postal_code: string;
+
+    @IsOptional()
+    @ApiPropertyOptional()
+    @IsString()
+    phone: string;
 }

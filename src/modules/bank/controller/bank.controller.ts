@@ -22,8 +22,6 @@ export class BankController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles([
     RoleEnum.SYSTEM_ADMIN,
-    RoleEnum.SUPER_ADMIN,
-    RoleEnum.USER_SUPER_ADMIN_BANK,
   ])
   create(@CurrentUser() userPayload: IJwtPayload, @Body() createBankDto: CreateBankDto) {
     return this.bankService.create(createBankDto, userPayload);
@@ -34,7 +32,6 @@ export class BankController {
   @UseGuards(JwtAuthGuard)
   @Roles([
     RoleEnum.SYSTEM_ADMIN,
-    RoleEnum.SUPER_ADMIN,
   ])
   findAll(@CurrentUser() userPayload: IJwtPayload, @Param() dto: FindBankDto) {
     return this.bankService.findAll(dto, userPayload);
@@ -43,26 +40,29 @@ export class BankController {
   @Get(':id')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @Roles([
+    RoleEnum.SYSTEM_ADMIN,
+    RoleEnum.ADMIN_BANK,
+  ])
   findOne(@CurrentUser() userPayload: IJwtPayload, @Param('id') id: string) {
-    if(userPayload.role_id >= RoleEnum.USER_CUSTOMER) throw new ForbiddenException('You are not allowed to access bank account');
     return this.bankService.findOneByIds([+id]);
   }
 
   @Post('get-bulk')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @Roles([
+    RoleEnum.SYSTEM_ADMIN,
+  ])
   findBulk(@CurrentUser() userPayload: IJwtPayload, @Body() { ids }: FindBulkDto) {
-    if(userPayload.role_id >= RoleEnum.USER_CUSTOMER) throw new ForbiddenException('You are not allowed to access bank account');
     return this.bankService.findOneByIds(ids.map(Number));
   }
-  
 
   @Get('validate-name/:name')
   async validateNameExist(@Param('name') name: string) {
     const bank = await this.bankService.findOneByName(name);
     if(bank) throw new BadRequestException('name already exists');
     return { message: 'name is available' };
-
   }
 
   @Patch(':id')
@@ -70,8 +70,7 @@ export class BankController {
   @UseGuards(JwtAuthGuard)
   @Roles([
     RoleEnum.SYSTEM_ADMIN,
-    RoleEnum.SUPER_ADMIN,
-    RoleEnum.USER_SUPER_ADMIN_BANK,
+    RoleEnum.ADMIN_BANK,
   ])
   update(@CurrentUser() userPayload: IJwtPayload, @Param('id') id: string, @Body() updateBankDto: UpdateBankDto) {
     if(userPayload.role_id >= RoleEnum.USER_CUSTOMER) throw new ForbiddenException('You are not allowed to update bank account');
@@ -81,6 +80,9 @@ export class BankController {
   @Delete(':id')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @Roles([
+    RoleEnum.SYSTEM_ADMIN,
+  ])
   deActived(@CurrentUser() userPayload: IJwtPayload, @Param('id') id: string) {
     if(userPayload.role_id >= RoleEnum.USER_CUSTOMER) throw new ForbiddenException('You are not allowed to delete bank account');
     return this.bankService.remove(+id);

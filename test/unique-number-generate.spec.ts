@@ -1,4 +1,4 @@
-import { generateUniqueNumber } from "src/utils/unique-number-generator.util";
+import { generateUniqueNumber } from "../src/utils/unique-number-generator.util";
 
 
 describe("UniqueNumberGenerate", () => {

@@ -21,8 +21,7 @@ export class CustomerController {
   @ApiBearerAuth()
   @Roles([
     RoleEnum.SYSTEM_ADMIN,
-    RoleEnum.SUPER_ADMIN,
-    RoleEnum.USER_SUPER_ADMIN_BANK,
+    RoleEnum.ADMIN_BANK,
   ])
   @Post()
   create(@CurrentUser() userPayload: IJwtPayload, @Body() createCustomerDto: CreateCustomerDto) {
@@ -36,8 +35,7 @@ export class CustomerController {
   @ApiBearerAuth()
   @Roles([
     RoleEnum.SYSTEM_ADMIN,
-    RoleEnum.SUPER_ADMIN,
-    RoleEnum.USER_SUPER_ADMIN_BANK,
+    RoleEnum.ADMIN_BANK,
   ])
   @Get()
   findAll(@CurrentUser() userPayload: IJwtPayload, @Query() dto: FindCustomerDto) {
@@ -48,8 +46,7 @@ export class CustomerController {
   @ApiBearerAuth()
   @Roles([
     RoleEnum.SYSTEM_ADMIN,
-    RoleEnum.SUPER_ADMIN,
-    RoleEnum.USER_SUPER_ADMIN_BANK,
+    RoleEnum.ADMIN_BANK,
   ])
   @Get('reset-password/:id')
   resetPassword(@CurrentUser() userPayload: IJwtPayload, @Param('id') id: string) {
@@ -65,8 +62,7 @@ export class CustomerController {
   @ApiBearerAuth()
   @Roles([
     RoleEnum.SYSTEM_ADMIN,
-    RoleEnum.SUPER_ADMIN,
-    RoleEnum.USER_SUPER_ADMIN_BANK,
+    RoleEnum.ADMIN_BANK,
   ])
   @Get(':id')
   findOne(@Param('id') id: string) {
@@ -87,8 +83,7 @@ export class CustomerController {
   @ApiBearerAuth()
   @Roles([
     RoleEnum.SYSTEM_ADMIN,
-    RoleEnum.SUPER_ADMIN,
-    RoleEnum.USER_SUPER_ADMIN_BANK,
+    RoleEnum.ADMIN_BANK,
   ])
   @Delete(':id')
   remove(@Param('id') id: string) {

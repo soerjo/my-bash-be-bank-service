@@ -8,9 +8,13 @@ export class BankEntity extends MainEntityAbstract {
   name: string;
 
   @Column({ unique: true })
+  email: string;
+
+  @Column({ unique: true })
   code: string;
 
   @Column({
+    nullable: true,
     transformer: {
       to: (value: string) => encrypt(value), // Encrypt before saving
       from: (value: string) => decrypt(value), // Decrypt when retrieving
@@ -19,6 +23,7 @@ export class BankEntity extends MainEntityAbstract {
   province: string;
 
   @Column({
+    nullable: true,
     transformer: {
       to: (value: string) => encrypt(value), // Encrypt before saving
       from: (value: string) => decrypt(value), // Decrypt when retrieving
@@ -27,6 +32,7 @@ export class BankEntity extends MainEntityAbstract {
   regency: string;
 
   @Column({
+    nullable: true,
     transformer: {
       to: (value: string) => encrypt(value), // Encrypt before saving
       from: (value: string) => decrypt(value), // Decrypt when retrieving
@@ -35,6 +41,7 @@ export class BankEntity extends MainEntityAbstract {
   district: string;
 
   @Column({
+    nullable: true,
     transformer: {
       to: (value: string) => encrypt(value), // Encrypt before saving
       from: (value: string) => decrypt(value), // Decrypt when retrieving
@@ -42,10 +49,14 @@ export class BankEntity extends MainEntityAbstract {
   })
   village: string;
 
-  @Column({ type: 'text' })
+  @Column({ 
+    nullable: true,
+    type: 'text',
+  })
   address: string;
 
   @Column({
+    nullable: true,
     transformer: {
       to: (value: string) => encrypt(value), // Encrypt before saving
       from: (value: string) => decrypt(value), // Decrypt when retrieving
@@ -54,6 +65,7 @@ export class BankEntity extends MainEntityAbstract {
   postal_code: string;
 
   @Column({
+    nullable: true,
     transformer: {
       to: (value: string) => encrypt(value), // Encrypt before saving
       from: (value: string) => decrypt(value), // Decrypt when retrieving
@@ -61,6 +73,8 @@ export class BankEntity extends MainEntityAbstract {
   })
   phone: string;
 
-  @Column()
+  @Column({
+    nullable: true,
+  })
   owner_id: number;
 }

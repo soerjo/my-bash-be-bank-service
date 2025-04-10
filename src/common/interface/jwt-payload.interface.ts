@@ -9,4 +9,5 @@ export interface IJwtPayload {
   bank_id: number;
   is_temp_password?: boolean;
   is_phone_valid?: boolean;
+  token: string;
 }

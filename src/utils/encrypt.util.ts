@@ -6,7 +6,7 @@ const SECRET_KEY = process.env['ENCRYPT_KEY'];
 const STATIC_KEY = process.env['STATIC_KEY'];
 
 export const encrypt = (text?: string): string | undefined => {
-    if (!text) return undefined;
+    if (!text) return null;
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv('aes-256-cbc', SECRET_KEY, iv);
     let encrypted = cipher.update(text, 'utf8', 'hex');
@@ -16,10 +16,10 @@ export const encrypt = (text?: string): string | undefined => {
 };
 
 export const decrypt = (text?: string): string | undefined => {
-    if (!text) return undefined;
+    if (!text) return null;
 
     const [ivHex, encryptedText] = text.split(':');
-    if (!ivHex || !encryptedText) return undefined;
+    if (!ivHex || !encryptedText) return null;
 
     const iv = Buffer.from(ivHex, 'hex');
     const decipher = crypto.createDecipheriv('aes-256-cbc', SECRET_KEY, iv);
@@ -30,7 +30,7 @@ export const decrypt = (text?: string): string | undefined => {
 };
 
 export const staticEncrypt = (text?: string): string | undefined => {
-    if (!text) return undefined;
+    if (!text) return null;
     const iv = Buffer.from(STATIC_KEY, 'hex');
     const cipher = crypto.createCipheriv('aes-256-cbc', SECRET_KEY, iv);
     let encrypted = cipher.update(text, 'utf8', 'hex');
@@ -40,9 +40,9 @@ export const staticEncrypt = (text?: string): string | undefined => {
 };
 
 export const staticDecrypt = (encryptedText?: string): string | undefined => {
-    if (!encryptedText) return undefined;
+    if (!encryptedText) return null;
 
-    if (!STATIC_KEY || !encryptedText) return undefined;
+    if (!STATIC_KEY || !encryptedText) return null;
 
     const iv = Buffer.from(STATIC_KEY, 'hex');
     const decipher = crypto.createDecipheriv('aes-256-cbc', SECRET_KEY, iv);

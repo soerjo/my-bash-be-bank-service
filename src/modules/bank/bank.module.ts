@@ -4,10 +4,14 @@ import { BankController } from './controller/bank.controller';
 import { BankRepository } from './repositories/bank.repository';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BankEntity } from './entities/bank.entity';
+import { UserModule } from '../user/user.module';
+import { WarehouseModule } from '../warehouse/warehouse.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([BankEntity])
+    TypeOrmModule.forFeature([BankEntity]),
+    UserModule,
+    WarehouseModule,
   ],
   controllers: [BankController],
   providers: [BankService, BankRepository],

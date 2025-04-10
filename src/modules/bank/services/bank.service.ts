@@ -5,11 +5,17 @@ import { BankRepository } from '../repositories/bank.repository';
 import { PaginationDto } from '../../../common/dto/pagination.dto';
 import { IJwtPayload } from '../../../common/interface/jwt-payload.interface';
 import { RoleEnum } from '../../../common/constant/role.constant';
+import { DataSource } from 'typeorm';
+import { UserService } from '../../../modules/user/services/user.service';
+import { WarehouseService } from '../../../modules/warehouse/services/warehouse.service';
 
 @Injectable()
 export class BankService {
   constructor(
+    private readonly dataSource: DataSource,
     private readonly bankRepository: BankRepository,
+    private readonly userService: UserService,
+    private readonly warehouseService: WarehouseService,
   ) {}
 
   async create(createBankDto: CreateBankDto, userPayload: IJwtPayload) {
@@ -19,8 +25,37 @@ export class BankService {
     const isAlreadyHaveBank = await this.bankRepository.findOneByOwnerId(userPayload.id);
     if(isAlreadyHaveBank) throw new BadRequestException('User already have bank');
 
-    const owner_id = userPayload.role_id == RoleEnum.USER_SUPER_ADMIN_BANK ? userPayload.id : createBankDto.owner_id;
-    return this.bankRepository.createBankAccount({...createBankDto, owner_id: userPayload.id});
+    return await this.dataSource.transaction(async (manager) => {
+      const newBank = await this.bankRepository.createBankAccount({...createBankDto}, manager);
+      const newWarehouse = await this.warehouseService.createWarehouse(
+        {
+          name: newBank.name,
+          bank_id: newBank.id,
+        }, 
+        userPayload.token
+      )
+      const newUser = await this.userService.createUser({
+          username: newBank.name.split(' ').join('_'),
+          email: newBank.email,
+          role_id: RoleEnum.USER_CUSTOMER,
+          bank_id: newBank.id,
+        }, 
+        userPayload.token
+      );
+
+      newBank.owner_id = newUser.id;
+      await newBank.save();
+
+      return {
+        ...newBank,
+        owner: newUser,
+        warehouse: newWarehouse,
+      }
+    }).catch((error) => {
+      console.error(error);
+      if(error instanceof BadRequestException) throw new BadRequestException(error);
+      throw new Error('Error while create bank');
+    });
   }
 
   findAll(dto: any & PaginationDto, user: IJwtPayload) {
@@ -39,11 +74,24 @@ export class BankService {
     return this.bankRepository.findOneByCode(code);
   }
 
-  update(id: number, updateBankDto: UpdateBankDto) {
-    return `This action updates a #${id} bank`;
+  findOneById(id: number) {
+    return this.bankRepository.findOneBy({id});
+  }
+
+  async update(id: number, dto: any) {
+    const existUser = await this.findOneById(id)
+    if(!existUser) throw new BadRequestException('User not found');
+    
+    return this.bankRepository.save({
+      ...existUser,
+      ...dto
+    })
   }
 
   remove(id: number) {
-    return `This action removes a #${id} bank`;
+    const existUser = this.findOneById(id)
+    if(!existUser) throw new BadRequestException('User not found');
+
+    return this.bankRepository.softDelete(id)
   }
 }

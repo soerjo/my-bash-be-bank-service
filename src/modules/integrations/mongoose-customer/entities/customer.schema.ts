@@ -36,7 +36,7 @@ export class Customer extends Document {
   accountNumber: string;
 
   @Prop({ required: true })
-  phone: number;
+  phone: string;
 
   @Prop({ type: [Address], _id: false })
   address: Address[];

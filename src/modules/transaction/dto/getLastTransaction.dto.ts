@@ -1,8 +1,8 @@
 import { IsArray, IsDateString, IsEnum, IsOptional, IsString } from "class-validator";
 import { TransactionTypeEnum } from "../../../common/constant/transaction-type.constant";
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsRangeDate } from "src/common/validation/isRangeDate.validation";
-import { IsGreaderDate } from "src/common/validation/isGreaderDate.validation";
+import { IsRangeDate } from "../../../common/validation/isRangeDate.validation";
+import { IsGreaderDate } from "../../../common/validation/isGreaderDate.validation";
 import { Type } from "class-transformer";
 
 export class GetLastTransactionDto {

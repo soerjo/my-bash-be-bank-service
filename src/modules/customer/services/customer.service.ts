@@ -13,7 +13,7 @@ import { GetBalanceDto } from '../dto/get-balance.dto';
 export class CustomerService {
   constructor(private readonly customerRepository: CustomerRepository) {}
 
-  async create(createCustomerDto: CreateCustomerDto, manager?: EntityManager) {
+  async create(createCustomerDto: CreateCustomerDto, manager?: EntityManager): Promise<CustomerEntity> {
     const repo = manager ? manager.getRepository(CustomerEntity) : this.customerRepository;
     
     const customer = createCustomerDto.user_id && await this.findOneByUserId(createCustomerDto.user_id);
@@ -23,7 +23,7 @@ export class CustomerService {
     return repo.save({
       ...createCustomerDto,
       private_account_number: createCustomerDto.private_account_number ?? generateUniqueNumber(lastCustomer?.id ?? 0, "PRV"),
-      public_account_number: createCustomerDto.private_account_number ?? generateUniqueNumber(lastCustomer?.id ?? 0, "PUB"),
+      public_account_number: createCustomerDto.public_account_number ?? generateUniqueNumber(lastCustomer?.id ?? 0, "PUB"),
       created_by: createCustomerDto.created_by,
       password: createCustomerDto.password,
     });

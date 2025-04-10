@@ -3,13 +3,14 @@ import { CreateTransactionDto } from '../dto/create-transaction.dto';
 import { UpdateTransactionDto } from '../dto/update-transaction.dto';
 import { EntityManager, In, Repository } from 'typeorm';
 import { TransactionEntity } from '../entities/transaction.entity';
-import { InjectRepository } from '@nestjs/typeorm';
+import { FindTransactionDto } from '../dto/find-transaction.dto';
+import { IJwtPayload } from '../../../common/interface/jwt-payload.interface';
+import { TransactionRepository } from '../repositories/transaction.repository';
 
 @Injectable()
 export class TransactionService {
   constructor(
-    @InjectRepository(TransactionEntity)
-    private readonly transactionRepository: Repository<TransactionEntity>,
+    private readonly transactionRepository: TransactionRepository
   ) {}
   async create(createTransactionDto: CreateTransactionDto, manager?: EntityManager) {
     const repo = manager ? manager.getRepository(TransactionEntity) : this.transactionRepository;
@@ -19,8 +20,8 @@ export class TransactionService {
     return repo.save(createTransaction);
   }
 
-  findAll() {
-    return `This action returns all transaction`;
+  findAll(dto: FindTransactionDto, userPayload: IJwtPayload) {
+    return this.transactionRepository.findAll(dto, userPayload);
   }
 
   findOne(id: number) {

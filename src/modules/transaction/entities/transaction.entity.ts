@@ -2,6 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from "typeorm";
 import { HistoryEntityAbstract } from "../../../common/abstract/history-entity.abstract";
 import { TransactionStatusEntity } from "./transaction-status.entity";
 import { TransactionTypeEntity } from "./transaction-type.entity";
+import Decimal from "decimal.js";
 
 @Entity({ name: 'transaction', schema: 'bank' })
 export class TransactionEntity extends HistoryEntityAbstract {
@@ -14,8 +15,21 @@ export class TransactionEntity extends HistoryEntityAbstract {
     @Column()
     customer_account_number: string;
 
-    @Column({default: 0, type: 'numeric', precision: 18, scale: 2 })
-    amount: number;
+    @Column({
+        default: 0, 
+        type: 'decimal',
+        precision: 18,
+        scale: 4,
+        transformer: {
+          to: (value: Decimal | string | number): string => {
+            return new Decimal(value ?? 0).toFixed(4, Decimal.ROUND_HALF_UP);
+          },
+          from: (value: string): Decimal => {
+            return new Decimal(value ?? 0);
+          },
+        },
+    })
+    amount: Decimal;
 
     @Column()
     transaction_type_id: number; // 1: deposit, 2: withdraw, 3: transfer
@@ -32,11 +46,37 @@ export class TransactionEntity extends HistoryEntityAbstract {
     @Column({nullable: true})
     last_transaction_id?: string;
 
-    @Column({default: 0, type: 'numeric', precision: 18, scale: 2})
-    balance_before?: number;
+    @Column({
+        default: 0, 
+        type: 'decimal',
+        precision: 18,
+        scale: 4,
+        transformer: {
+          to: (value: Decimal | string | number): string => {
+            return new Decimal(value ?? 0).toFixed(4, Decimal.ROUND_HALF_UP);
+          },
+          from: (value: string): Decimal => {
+            return new Decimal(value ?? 0);
+          },
+        },
+    })
+    balance_before?: Decimal;
 
-    @Column({default: 0, type: 'numeric', precision: 18, scale: 2})
-    balance_after?: number;
+    @Column({
+        default: 0, 
+        type: 'decimal',
+        precision: 18,
+        scale: 4,
+        transformer: {
+          to: (value: Decimal | string | number): string => {
+            return new Decimal(value ?? 0).toFixed(4, Decimal.ROUND_HALF_UP);
+          },
+          from: (value: string): Decimal => {
+            return new Decimal(value ?? 0);
+          },
+        },
+    })
+    balance_after?: Decimal;
 
     @ManyToOne(() => TransactionStatusEntity)
     @JoinColumn({ name: 'transaction_status_id', referencedColumnName: 'transaction_status_id'  })
