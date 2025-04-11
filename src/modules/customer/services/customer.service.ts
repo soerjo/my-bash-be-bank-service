@@ -14,8 +14,6 @@ export class CustomerService {
   constructor(private readonly customerRepository: CustomerRepository) {}
 
   async create(createCustomerDto: CreateCustomerDto, manager?: EntityManager): Promise<CustomerEntity> {
-    // console.log({createCustomerDto})
-    // console.log({password: encryptPassword(createCustomerDto.password),})
     const repo = manager ? manager.getRepository(CustomerEntity) : this.customerRepository;
     
     const customer = createCustomerDto.user_id && await this.findOneByUserId(createCustomerDto.user_id);
@@ -28,7 +26,6 @@ export class CustomerService {
       public_account_number: createCustomerDto.public_account_number ?? generateUniqueNumber(lastCustomer?.id ?? 0, "PUB"),
       created_by: createCustomerDto.created_by,
       password: encryptPassword(createCustomerDto.password),
-      temp_password: createCustomerDto.password, 
     })
     return repo.save(newCustomer);
   }
@@ -61,8 +58,32 @@ export class CustomerService {
     return this.customerRepository.findAll(dto, userPayload)
   }
 
-  findOne(id: number) {
-    return this.customerRepository.findOneBy({ id });
+  async findOne(id: number) {
+    const customer = await this.customerRepository.findOneBy({ id });
+    return {
+      id:customer.id,
+      created_at:customer.created_at,
+      last_transaction_id:customer.last_transaction_id,
+      balance:customer.balance,
+      user_id:customer.user_id,
+      bank_id:customer.bank_id,
+      private_account_number:customer.private_account_number,
+      public_account_number:customer.public_account_number,
+      password:customer.password,
+      temp_password:customer.temp_password,
+      full_name:customer.full_name,
+      name:customer.name,
+      identity_number:customer.identity_number,
+      photo_url:customer.photo_url,
+      province:customer.province,
+      regency:customer.regency,
+      district:customer.district,
+      village:customer.village,
+      address:customer.address,
+      postal_code:customer.postal_code,
+      phone:customer.phone,
+      email:customer.email,
+    }
   }
   
   async getBalance(dto: GetBalanceDto) {

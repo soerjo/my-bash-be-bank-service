@@ -79,14 +79,14 @@ export class CustomerController {
   //   return this.customerService.update(+id, updateCustomerDto);
   // }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @ApiBearerAuth()
-  @Roles([
-    RoleEnum.SYSTEM_ADMIN,
-    RoleEnum.ADMIN_BANK,
-  ])
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.customerService.remove(+id);
-  }
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @ApiBearerAuth()
+  // @Roles([
+  //   RoleEnum.SYSTEM_ADMIN,
+  //   RoleEnum.ADMIN_BANK,
+  // ])
+  // @Delete(':id')
+  // remove(@Param('id') id: string) {
+  //   return this.customerService.remove(+id);
+  // }
 }
