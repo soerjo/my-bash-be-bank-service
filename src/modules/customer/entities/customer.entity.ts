@@ -40,22 +40,10 @@ export class CustomerEntity extends MainEntityAbstract {
   @Column({ unique: true, })
   public_account_number: string;
 
-  @Column({
-    nullable: true,
-    transformer: {
-      to: (value: string) => staticEncrypt(value), // Encrypt before saving
-      from: (value: string) => staticDecrypt(value), // Decrypt when retrieving
-    },
-  })
+  @Column({ nullable: true })
   password: string;
 
-  @Column({
-    nullable: true,
-    transformer: {
-      to: (value: string) => staticEncrypt(value), // Encrypt before saving
-      from: (value: string) => staticDecrypt(value), // Decrypt when retrieving
-    },
-  })
+  @Column({ nullable: true })
   temp_password: string;
 
   @Column({

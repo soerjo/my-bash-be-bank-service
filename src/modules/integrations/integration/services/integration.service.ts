@@ -37,7 +37,7 @@ export class IntegrationService {
     return `This action removes a #${id} integration`;
   }
 
-  private iteration = 0;
+  private iteration = 1;
   private failedIntegration: any[] = [];
   async sync(nextPage = 1) {
     let { data: dataVar, totalPages, page } = await this.mongooseCustomerService.findAll(nextPage);
@@ -61,7 +61,7 @@ export class IntegrationService {
             public_account_number: dataVar[index]?.accountNumber,
             full_name: dataVar[index].fullName,
             name: dataVar[index].username,
-            password: dataVar[index]?.password ?? dataVar[index]?.accountNumber,
+            password: dataVar[index]?.accountNumber.slice(0,6),
             phone: dataVar[index]?.phone,
             province: dataVar[index]?.address[0].province,
             regency: dataVar[index]?.address[0].city,

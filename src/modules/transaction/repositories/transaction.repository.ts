@@ -32,8 +32,8 @@ export class TransactionRepository extends Repository<TransactionEntity> {
     async findAll(dto: FindTransactionDto, userPayload: IJwtPayload, manager?: EntityManager) {
         const repo = manager ? manager.getRepository(TransactionEntity) : this;
         const queryBuilder = repo.createQueryBuilder('transaction');
-        queryBuilder.leftJoin('transaction.transactionStatus', 'transaction_status');
-        queryBuilder.leftJoin('transaction.transactionType', 'transaction_type');
+        queryBuilder.leftJoin('transaction.transactionStatus', 'transaction_status', 'transaction_status.deleted_at IS NULL');
+        queryBuilder.leftJoin('transaction.transactionType', 'transaction_type', 'transaction_type.deleted_at IS NULL');
         queryBuilder.select([
           "transaction.id as id",
           "transaction.customer_id as customer_id",
@@ -49,36 +49,32 @@ export class TransactionRepository extends Repository<TransactionEntity> {
           "transaction.last_transaction_id as last_transaction_id",
           "transaction.balance_before as balance_before",
           "transaction.balance_after as balance_after",
+          "transaction.created_at as created_at",
         ]);
         
-        // if(dto?.name) {
-        //   queryBuilder.andWhere('transaction.name ILIKE :name OR transaction.full_name ILIKE :name', { name: `%${dto.name}%` });
-        // }
-    
-        // if(dto?.identity_number) {
-        //   queryBuilder.andWhere('transaction.identity_number = :identity_number', { identity_number: dto.identity_number });
-        // }
+        if(dto?.customer_account_number) {
+          queryBuilder.andWhere('transaction.customer_account_number = :customer_account_number', { customer_account_number: dto.customer_account_number });
+        }
 
-        // if(dto?.public_account_number) {
-        //   queryBuilder.andWhere('transaction.public_account_number = :public_account_number', { public_account_number: dto.public_account_number });
-        // }
+        if(dto?.start_date) {
+          const startDate = new Date(dto.start_date);
+          startDate.setHours(0, 0, 0, 0);
+          queryBuilder.andWhere('transaction.created_at >= :start_date', { start_date: startDate });
+        }
 
-        
-        // if(dto?.address) {
-        //   queryBuilder.where(
-        //     new Brackets(qb => {
-        //       qb.where('transaction.province ILIKE :address', { address: `%${dto.address}%` })
-        //         .orWhere('transaction.regency ILIKE :address', { address: `%${dto.address}%` })
-        //         .orWhere('transaction.district ILIKE :address', { address: `%${dto.address}%` })
-        //         .orWhere('transaction.village ILIKE :address', { address: `%${dto.address}%` })
-        //         .orWhere('transaction.address ILIKE :address', { address: `%${dto.address}%` })
-        //         .orWhere('transaction.postal_code ILIKE :address', { address: `%${dto.address}%` });
-        //     }),
-        //   )
-        // }
+        if(dto?.end_date) {
+          const endDate = new Date(dto.end_date);
+          endDate.setHours(23, 59, 59, 999);
+          queryBuilder.andWhere('transaction.created_at <= :end_date', { end_date: endDate });
+        }
+
+        if(dto.transaction_types) {
+          queryBuilder.andWhere('transaction.transaction_type_id IN (:...transaction_types)', { transaction_types: dto.transaction_types });
+        }
+
 
         queryBuilder.orderBy('transaction.created_at', 'DESC')
-        queryBuilder.skip((dto.page - 1) * dto.take).take(dto.take)
+        queryBuilder.offset((dto.page - 1) * dto.take).limit(dto.take)
       
         const queryItemCount = queryBuilder.getCount()
         const queryUser = queryBuilder.getRawMany()
@@ -91,6 +87,7 @@ export class TransactionRepository extends Repository<TransactionEntity> {
           pageCount: Math.ceil(itemCount / dto?.take) ? Math.ceil(itemCount / dto?.take) : 0,
         };
     
+        console.log({itemCount, rawData})
         const processedData = rawData.map(data => ({
           ...data, 
           amount: new Decimal(data.amount),

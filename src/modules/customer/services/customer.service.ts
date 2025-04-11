@@ -1,6 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateCustomerDto } from '../dto/create-customer.dto';
-import { UpdateCustomerDto } from '../dto/update-customer.dto';
 import { IJwtPayload } from '../../../common/interface/jwt-payload.interface';
 import { CustomerRepository } from '../repositories/customer.repository';
 import { EntityManager } from 'typeorm';
@@ -8,25 +7,30 @@ import { FindCustomerDto } from '../dto/find-customer.dto';
 import { generateUniqueNumber } from '../../../utils/unique-number-generator.util';
 import { CustomerEntity } from '../entities/customer.entity';
 import { GetBalanceDto } from '../dto/get-balance.dto';
+import { encryptPassword, validatePassword } from '../../../utils/hashing.util';
 
 @Injectable()
 export class CustomerService {
   constructor(private readonly customerRepository: CustomerRepository) {}
 
   async create(createCustomerDto: CreateCustomerDto, manager?: EntityManager): Promise<CustomerEntity> {
+    // console.log({createCustomerDto})
+    // console.log({password: encryptPassword(createCustomerDto.password),})
     const repo = manager ? manager.getRepository(CustomerEntity) : this.customerRepository;
     
     const customer = createCustomerDto.user_id && await this.findOneByUserId(createCustomerDto.user_id);
     if (customer) throw new BadRequestException('Customer already exist');
 
     const [lastCustomer] = await repo.find({ order: { id: 'DESC' }, take: 1 });
-    return repo.save({
+    const newCustomer = repo.create({
       ...createCustomerDto,
       private_account_number: createCustomerDto.private_account_number ?? generateUniqueNumber(lastCustomer?.id ?? 0, "PRV"),
       public_account_number: createCustomerDto.public_account_number ?? generateUniqueNumber(lastCustomer?.id ?? 0, "PUB"),
       created_by: createCustomerDto.created_by,
-      password: createCustomerDto.password,
-    });
+      password: encryptPassword(createCustomerDto.password),
+      temp_password: createCustomerDto.password, 
+    })
+    return repo.save(newCustomer);
   }
 
   async resetPassword(id: number, userPayload: IJwtPayload) {
@@ -87,6 +91,18 @@ export class CustomerService {
   findOneByPublicAccountNumber(public_account_number: string) {
     return this.customerRepository.findOneBy({ public_account_number });
   }
+
+  async findOneByPrivateAccountNumber(private_account_number: string, password: string) {
+    const customer = await this.customerRepository.findOneBy({ private_account_number });
+    if (!customer) return;
+    console.log({customer})
+    console.log({password})
+    console.log({isvalid: validatePassword(password, customer.password)})
+    if (customer.password && !validatePassword(password, customer.password)) return;
+
+    return customer;
+  }
+
 
   findOneByUserId(user_id: number, manager?: EntityManager) {
     return this.customerRepository.findOneByUserId(user_id, manager);

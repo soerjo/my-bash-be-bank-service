@@ -11,34 +11,39 @@ import { IJwtPayload } from '../../../common/interface/jwt-payload.interface';
 import { FindTransactionDto } from '../dto/find-transaction.dto';
 
 @ApiTags('Transaction')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@ApiBearerAuth()
 @Controller('transaction')
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
   create(@Body() createTransactionDto: CreateTransactionDto) {
     return this.transactionService.create(createTransactionDto);
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
   findAll(@CurrentUser() userPayload: IJwtPayload, @Query() dto: FindTransactionDto) {
     return this.transactionService.findAll(dto, userPayload);
   }
 
-  @Get('last-transaction/:private_number')
-  getTransactionByPrivateAccountNumber(@Param('private_number') private_number: string, @Query() dto: GetLastTransactionDto) {
-    // return this.transactionService.getLastTransaction(private_number);
-    return "success"
+  @Post('last-transaction')
+  getTransactionByPrivateAccountNumber(@Body() dto: GetLastTransactionDto) {
+    return this.transactionService.getLastTransaction(dto);
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
   findOne(@Param('id') id: string) {
     return this.transactionService.findOne(+id);
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
   update(@Param('id') id: string, @Body() updateTransactionDto: UpdateTransactionDto) {
     return this.transactionService.update(+id, updateTransactionDto);
   }
