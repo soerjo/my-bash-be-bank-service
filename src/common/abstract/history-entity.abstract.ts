@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 export class HistoryEntityAbstract extends BaseEntity {
@@ -17,4 +18,12 @@ export class HistoryEntityAbstract extends BaseEntity {
   @Exclude()
   @CreateDateColumn()
   created_at: Date;
+
+  @Exclude()
+  @Column({ nullable: false, default: 0 })
+  updated_by: number;
+
+  @Exclude()
+  @UpdateDateColumn()
+  updated_at: Date;
 }

@@ -65,26 +65,26 @@ export class BankController {
     return { message: 'name is available' };
   }
 
-  @Patch(':id')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Roles([
-    RoleEnum.SYSTEM_ADMIN,
-    RoleEnum.ADMIN_BANK,
-  ])
-  update(@CurrentUser() userPayload: IJwtPayload, @Param('id') id: string, @Body() updateBankDto: UpdateBankDto) {
-    if(userPayload.role_id >= RoleEnum.USER_CUSTOMER) throw new ForbiddenException('You are not allowed to update bank account');
-    return this.bankService.update(+id, updateBankDto);
-  }
+  // @Patch(':id')
+  // @ApiBearerAuth()
+  // @UseGuards(JwtAuthGuard)
+  // @Roles([
+  //   RoleEnum.SYSTEM_ADMIN,
+  //   RoleEnum.ADMIN_BANK,
+  // ])
+  // update(@CurrentUser() userPayload: IJwtPayload, @Param('id') id: string, @Body() updateBankDto: UpdateBankDto) {
+  //   if(userPayload.role_id >= RoleEnum.USER_CUSTOMER) throw new ForbiddenException('You are not allowed to update bank account');
+  //   return this.bankService.update(+id, updateBankDto);
+  // }
 
-  @Delete(':id')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Roles([
-    RoleEnum.SYSTEM_ADMIN,
-  ])
-  deActived(@CurrentUser() userPayload: IJwtPayload, @Param('id') id: string) {
-    if(userPayload.role_id >= RoleEnum.USER_CUSTOMER) throw new ForbiddenException('You are not allowed to delete bank account');
-    return this.bankService.remove(+id);
-  }
+  // @Delete(':id')
+  // @ApiBearerAuth()
+  // @UseGuards(JwtAuthGuard)
+  // @Roles([
+  //   RoleEnum.SYSTEM_ADMIN,
+  // ])
+  // deActived(@CurrentUser() userPayload: IJwtPayload, @Param('id') id: string) {
+  //   if(userPayload.role_id >= RoleEnum.USER_CUSTOMER) throw new ForbiddenException('You are not allowed to delete bank account');
+  //   return this.bankService.remove(+id);
+  // }
 }

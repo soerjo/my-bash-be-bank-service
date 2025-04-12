@@ -5,7 +5,8 @@ export class CreateUserDto {
 
     email: string;
 
-    bank_id: number;
-
     role_id: RoleEnum;
+
+    bank_id: number;
+    warehouse_id: number;
 }

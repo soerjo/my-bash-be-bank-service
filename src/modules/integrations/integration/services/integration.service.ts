@@ -4,103 +4,113 @@ import { UpdateIntegrationDto } from '../dto/update-integration.dto';
 import { MongooseCustomerService } from '../../mongoose-customer/services/mongoose-customer.service';
 import { CustomerService } from '../../../../modules/customer/services/customer.service';
 import { DataSource } from 'typeorm';
-import { TransactionService } from '../../../../modules/transaction/services/transaction.service';
 import Decimal from 'decimal.js';
-import { TransactionStatusEnum } from '../../../../common/constant/transaction-status.constant';
 import { TransactionTypeEnum } from '../../../../common/constant/transaction-type.constant';
+import {Customer} from '../../mongoose-customer/entities/customer.schema'
+import { TransactionService } from '../../../../modules/transaction/services/transaction.service';
+import { IntegrationRepositories } from '../repositories/integration.repository';
+import { Propagation, Transactional } from 'typeorm-transactional';
+// import { Transactional } from 'typeorm-transactional-cls-hooked';
+
 
 @Injectable()
 export class IntegrationService {
   constructor(
-    private readonly dataSource: DataSource,
+    private readonly integrationRepository: IntegrationRepositories,
     private readonly mongooseCustomerService: MongooseCustomerService,
     private readonly customerService: CustomerService,
     private readonly transactionService: TransactionService,
-  ) {}
-  create(createIntegrationDto: CreateIntegrationDto) {
-    return 'This action adds a new integration';
-  }
+    private readonly dataSource: DataSource,
+    // private readonly transactionRepositories: TransactionRepository,
+  ) {}  
 
-  findAll() {
-    return `This action returns all integration`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} integration`;
-  }
-
-  update(id: number, updateIntegrationDto: UpdateIntegrationDto) {
-    return `This action updates a #${id} integration`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} integration`;
-  }
-
-  private iteration = 1;
-  private failedIntegration: any[] = [];
-  async sync(nextPage = 1) {
+  async sync(nextPage = 1, iteration = 0) {
     let { data: dataVar, totalPages, page } = await this.mongooseCustomerService.findAll(nextPage);
-
+    
     for (let index = 0; index < dataVar.length; index++) {
-      await this.dataSource.transaction(async (manager) => {
-        if(!dataVar[index]?.accountNumber) {
-          this.failedIntegration.push(dataVar[index]);
-          return;
-        }
-        const existCustomer = await this.customerService.findOneByPublicAccountNumber(dataVar[index]?.accountNumber);
-        if (existCustomer) {
-          this.failedIntegration.push(dataVar[index]);
-          return;
-        }
-        
+      try {
+        await this.integration(dataVar[index]);
+        console.log('iteration => ', iteration ++);
 
-        // create customer account
+      } catch (error) {
+        console.log('error', error);
+        await this.integrationRepository.save({
+          account_number: dataVar[index]?.accountNumber,
+          fullname: dataVar[index]?.fullName,
+          balance: String(dataVar[index]?.balance),
+          profile: {...dataVar[index]},
+          error: error,
+          error_message: error?.message,          
+        });
+      }
+
+    }
+    
+    if (page == totalPages) return;
+    
+    return this.sync(page + 1, iteration);
+    // return;
+  }
+  
+  // @Transactional({propagation: Propagation.MANDATORY})
+  @Transactional()
+  async integration(dataVar: Customer){
+      if(!dataVar?.accountNumber) {
+        throw new Error('Account number is not found!');
+      }
+      
+      const existCustomer = await this.customerService.findOneByPublicAccountNumber(dataVar?.accountNumber);
+      if (existCustomer) {
+        throw new Error('Account number already exist!');
+      }
+      
+      // await this.dataSource.transaction(async (manager) => {
+      // create customer account
         const customer = await this.customerService.create(
           {
-            public_account_number: dataVar[index]?.accountNumber,
-            full_name: dataVar[index].fullName,
-            name: dataVar[index].username,
-            password: dataVar[index]?.accountNumber.slice(0,6),
-            phone: dataVar[index]?.phone,
-            province: dataVar[index]?.address[0].province,
-            regency: dataVar[index]?.address[0].city,
-            district: dataVar[index]?.address[0].region,
-            village: dataVar[index]?.address[0].region,
-            address: dataVar[index]?.address[0].street,
-            postal_code: dataVar[index]?.address[0].postalCode,
+            public_account_number: dataVar?.accountNumber,
+            full_name: dataVar.fullName,
+            name: dataVar.username,
+            password: dataVar.accountNumber.slice(0,6),
+            phone: dataVar.phone,
+            province: dataVar.address[0]?.province,
+            regency: dataVar.address[0]?.city,
+            district: dataVar.address[0]?.region,
+            village: dataVar.address[0]?.region,
+            address: dataVar.address[0]?.street,
+            postal_code: dataVar.address[0]?.postalCode,
           },
-          manager,
+          // manager
         );
-
+  
+        console.log('customer', customer);
+  
         // generate transaction to init balance
-        const transaction = await this.transactionService.create(
+        const transaction = await this.transactionService.createTransaction(
           {
             customer_id: customer.id,
             customer_account_number: customer.public_account_number,
-            amount: new Decimal(dataVar[index].balance),
+            amount: new Decimal(dataVar.balance),
             transaction_type_id: TransactionTypeEnum.DEPOSIT,
             message: 'Initial Balance',
-            transaction_status_id: TransactionStatusEnum.SUCCESS,
-            balance_after: new Decimal(dataVar[index].balance),
           },
-          manager,
+          // manager
         );
-
+  
+        console.log('transaction', transaction);
+        // completed transaction to init balance
+        await this.transactionService.completedTransaction(
+          transaction.id, 
+          0, 
+          // manager
+        );
+  
         customer.last_transaction_id = transaction.id;
-        customer.balance = new Decimal(dataVar[index].balance);
-        await this.customerService.update(customer, manager);
-      }).catch((error) => {
-        console.error(error);
-        if(error instanceof BadRequestException) throw new BadRequestException(error);
-        throw new Error('Error while syncing');
-      });
-      
-      console.log('iteration => ', this.iteration ++)
-    }
-    
-    if (page == totalPages) return {failedIntegration: this.failedIntegration};
-
-    return this.sync(page + 1);
+        customer.balance = new Decimal(dataVar.balance);
+  
+        await this.customerService.update(
+          customer, 
+          // manager
+        );
   }
 }

@@ -5,6 +5,7 @@ export class CreateBankDto {
     @IsString()
     @IsNotEmpty()
     @ApiProperty()
+    // should add validation that the name is not contain some dangerous word
     name: string;  
     
     @IsString()

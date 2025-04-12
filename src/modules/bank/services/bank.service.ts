@@ -27,34 +27,42 @@ export class BankService {
 
     return await this.dataSource.transaction(async (manager) => {
       const newBank = await this.bankRepository.createBankAccount({...createBankDto}, manager);
+
+      console.log("=====================> createwarehouse");
       const newWarehouse = await this.warehouseService.createWarehouse(
         {
           name: newBank.name,
           bank_id: newBank.id,
         }, 
         userPayload.token
-      )
+      );
+
+      console.log({newWarehouse})
+
+      console.log("=====================> user");
       const newUser = await this.userService.createUser({
           username: newBank.name.split(' ').join('_'),
           email: newBank.email,
           role_id: RoleEnum.USER_CUSTOMER,
           bank_id: newBank.id,
+          warehouse_id: newWarehouse.id,
         }, 
         userPayload.token
       );
 
+      console.log("=====================> update bank");
       newBank.owner_id = newUser.id;
-      await newBank.save();
+      await this.bankRepository.updateData(newBank, manager)
 
       return {
         ...newBank,
         owner: newUser,
         warehouse: newWarehouse,
       }
-    }).catch((error) => {
-      console.error(error);
+    }).catch((error: any) => {
+      console.error(error?.message);
       if(error instanceof BadRequestException) throw new BadRequestException(error);
-      throw new Error('Error while create bank');
+      throw new Error(error?.message);
     });
   }
 
@@ -75,7 +83,7 @@ export class BankService {
   }
 
   findOneById(id: number) {
-    return this.bankRepository.findOneBy({id});
+    return this.bankRepository.findOne({ where: { id } });
   }
 
   async update(id: number, dto: any) {

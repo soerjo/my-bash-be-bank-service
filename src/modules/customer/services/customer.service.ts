@@ -14,24 +14,31 @@ export class CustomerService {
   constructor(private readonly customerRepository: CustomerRepository) {}
 
   async create(createCustomerDto: CreateCustomerDto, manager?: EntityManager): Promise<CustomerEntity> {
-    const repo = manager ? manager.getRepository(CustomerEntity) : this.customerRepository;
-    
-    const customer = createCustomerDto.user_id && await this.findOneByUserId(createCustomerDto.user_id);
-    if (customer) throw new BadRequestException('Customer already exist');
+    const repository = manager ? manager.getRepository(CustomerEntity) : this.customerRepository;
 
-    const [lastCustomer] = await repo.find({ order: { id: 'DESC' }, take: 1 });
-    const newCustomer = repo.create({
+    console.log("======================")
+    console.log({manager})
+    console.log("======================")
+    
+    const customer = await repository.findOne({ where: [
+      { public_account_number: createCustomerDto.public_account_number },
+      { private_account_number: createCustomerDto.private_account_number },
+    ] });
+    if (customer) throw new BadRequestException('public_account_number or private_account_number already exist');
+
+    const [lastCustomer] = await repository.find({ order: { id: 'DESC' }, take: 1 });
+    const newCustomer = repository.create({
       ...createCustomerDto,
       private_account_number: createCustomerDto.private_account_number ?? generateUniqueNumber(lastCustomer?.id ?? 0, "PRV"),
       public_account_number: createCustomerDto.public_account_number ?? generateUniqueNumber(lastCustomer?.id ?? 0, "PUB"),
       created_by: createCustomerDto.created_by,
       password: encryptPassword(createCustomerDto.password),
     })
-    return repo.save(newCustomer);
+    return repository.save(newCustomer);
   }
 
   async resetPassword(id: number, userPayload: IJwtPayload) {
-    const customer = await this.customerRepository.findOneBy({ id });
+    const customer = await this.customerRepository.findOne({ where: { id } });
     if(!customer) throw new BadRequestException('Customer not found');
 
     const tempPassword = generateUniqueNumber(customer.id, "PWD");
@@ -45,7 +52,7 @@ export class CustomerService {
   }
 
   async setNewPassword(dto: GetBalanceDto) {
-    const customer = await this.customerRepository.findOneBy({ temp_password: dto.password });
+    const customer = await this.customerRepository.findOne({ where: { temp_password: dto.password } });
     if(!customer) throw new BadRequestException('Customer not found');
 
     customer.password = dto.password;
@@ -59,7 +66,7 @@ export class CustomerService {
   }
 
   async findOne(id: number) {
-    const customer = await this.customerRepository.findOneBy({ id });
+    const customer = await this.customerRepository.findOne({ where: { id } });
     return {
       id:customer.id,
       created_at:customer.created_at,
@@ -87,7 +94,7 @@ export class CustomerService {
   }
   
   async getBalance(dto: GetBalanceDto) {
-    const result = await this.customerRepository.findOneBy({ private_account_number: dto.private_account_number, password: dto.password });
+    const result = await this.customerRepository.findOne({ where: { private_account_number: dto.private_account_number, password: dto.password } });
 
     if(!result) {
       throw new BadRequestException('Invalid private number or password');
@@ -109,12 +116,13 @@ export class CustomerService {
     }
   }
 
-  findOneByPublicAccountNumber(public_account_number: string) {
-    return this.customerRepository.findOneBy({ public_account_number });
+  findOneByPublicAccountNumber(public_account_number: string, manager?: EntityManager) {
+    const repository = manager ? manager.getRepository(CustomerEntity) : this.customerRepository;
+    return repository.findOne({ where: { public_account_number } });
   }
 
   async findOneByPrivateAccountNumber(private_account_number: string, password: string) {
-    const customer = await this.customerRepository.findOneBy({ private_account_number });
+    const customer = await this.customerRepository.findOne({ where: { private_account_number } });
     if (!customer) return;
     console.log({customer})
     console.log({password})
@@ -125,13 +133,19 @@ export class CustomerService {
   }
 
 
-  findOneByUserId(user_id: number, manager?: EntityManager) {
-    return this.customerRepository.findOneByUserId(user_id, manager);
+  findOneById(id: number, manager?: EntityManager) {
+    const repository = manager ? manager.getRepository(CustomerEntity) : this.customerRepository;
+    return repository.findOne({ where: { id } });
   }
 
-  update(dto: CustomerEntity, manager?: EntityManager) {
-    const repo = manager ? manager.getRepository(CustomerEntity) : this.customerRepository;
-    return repo.save(dto);
+  // @Transactional()
+  async update(dto: CustomerEntity, manager?: EntityManager) {
+    const repository = manager ? manager.getRepository(CustomerEntity) : this.customerRepository;
+
+    const customer = await repository.findOne({ where:{ id: dto.id } });
+    if(!customer) throw new BadRequestException('Customer not found');
+
+    return repository.save({...customer, ...dto});
   }
 
   remove(id: number) {

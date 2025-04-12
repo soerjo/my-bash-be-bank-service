@@ -19,7 +19,8 @@ export class TransactionController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   create(@Body() createTransactionDto: CreateTransactionDto) {
-    return this.transactionService.create(createTransactionDto);
+    // return this.transactionService.create(createTransactionDto);
+    return "would new transaction method"
   }
 
   @Get()

@@ -15,6 +15,8 @@ import { IntegrationsModule } from './modules/integrations/integration.module';
 import { UserServiceModule } from './modules/user-service/user-service.module';
 import { UserModule } from './modules/user/user.module';
 import { WarehouseModule } from './modules/warehouse/warehouse.module';
+import { DataSource } from 'typeorm';
+import { addTransactionalDataSource } from 'typeorm-transactional';
 
 @Module({
   imports: [
@@ -26,6 +28,13 @@ import { WarehouseModule } from './modules/warehouse/warehouse.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => configService.get('typeorm'),
+      async dataSourceFactory(options) {
+        if (!options) {
+          throw new Error('Invalid options passed');
+        }
+
+        return addTransactionalDataSource(new DataSource(options));
+      },
     }),
     JwtModule.register({ global: true }),
     // ExampleModule,

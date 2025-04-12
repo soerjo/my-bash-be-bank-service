@@ -1,11 +1,12 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { BankEntity } from "../entities/bank.entity";
-import { InjectRepository } from "@nestjs/typeorm";
+import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
 import { DataSource, EntityManager, In, Repository } from "typeorm";
 import { CreateBankDto } from "../dto/create-bank.dto";
 import { bankGenerateCode } from "../../../utils/bank-code-generator.utils";
 import { IJwtPayload } from "../../../common/interface/jwt-payload.interface";
 import { decrypt } from "../../../utils/encrypt.util";
+// import { BaseRepository } from "typeorm-transactional-cls-hooked";
 
 @Injectable()
 export class BankRepository extends Repository<BankEntity> {
@@ -17,9 +18,15 @@ export class BankRepository extends Repository<BankEntity> {
     const lastBankAccount = await repository.find({order: {id: 'DESC'}, take: 1});
     const lastId = lastBankAccount.length ? lastBankAccount[0].id : 0;
     const code = bankGenerateCode(lastId)
-    const bank = this.create({...dto, code});
+    const bank = repository.create({...dto, code});
 
-    return this.save(bank);
+    return repository.save(bank);
+  }
+
+  async updateData (updateDto: Partial<BankEntity>, manager?: EntityManager) {
+    const repository = manager ? manager.getRepository(BankEntity) : this;
+    const existingBank = await repository.findOne({ where: { id: updateDto.id } });
+    return repository.save({...existingBank, ...updateDto});
   }
 
   async findAll(dto: any, userPayload: IJwtPayload) {
