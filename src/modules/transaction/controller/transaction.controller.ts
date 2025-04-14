@@ -13,6 +13,7 @@ import { RoleEnum } from '../../../common/constant/role.constant';
 import { CreateTransactionCashDto } from '../dto/create-transaction-cash.dto';
 import { WithdrawCashDto } from '../dto/create-withdraw-cash.dto';
 import { GetBalanceDto } from '../dto/get-balance.dto';
+import { UpdateTransactionStatusDto } from '../dto/complete-transaction.dto';
 
 @ApiTags('Transaction')
 @Controller('transaction')
@@ -29,11 +30,27 @@ export class TransactionController {
     return this.transactionService.getLastTransaction(dto);
   }
 
+  @Post('complete')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
+  completeTransaction(@Body() dto: UpdateTransactionStatusDto, @CurrentUser() userPayload: IJwtPayload) {
+    return this.transactionService.completedBulkTransaction(dto.transaction_id, userPayload);
+  }
+
+  @Post('cancel')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
+  cancelTransaction(@Body() dto: UpdateTransactionStatusDto, @CurrentUser() userPayload: IJwtPayload) {
+    return this.transactionService.cancleBulkTransaction(dto.transaction_id, userPayload);
+  }
+
   @Post('deposit/thing')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
-  deopsitThink(@Body() createDto: CreateTransactionDto, @CurrentUser() userPayload: IJwtPayload) {
+  deopsitThing(@Body() createDto: CreateTransactionDto, @CurrentUser() userPayload: IJwtPayload) {
     return this.transactionService.depositThings(createDto, userPayload);
   }
 

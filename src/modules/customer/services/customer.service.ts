@@ -58,7 +58,7 @@ export class CustomerService {
   }
 
   findAll(dto: FindCustomerDto, userPayload: IJwtPayload) {
-    return this.customerRepository.findAll(dto, userPayload)
+    return this.customerRepository.findAll({...dto, bank_id: userPayload.bank_id});
   }
 
   async findOne(id: number) {

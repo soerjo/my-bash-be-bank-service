@@ -49,7 +49,7 @@ export class TransactionService {
     return repository.save(createTransaction);
   }
 
-  // @Transactional()
+  @Transactional()
   async completedTransaction(transactionId: string, createByUserId?: number, manager?: EntityManager) {
     const repository = manager ? manager.getRepository(TransactionEntity) : this.transactionRepository;
 
@@ -79,6 +79,7 @@ export class TransactionService {
 
   }
 
+  @Transactional()
   async completedBulkTransaction(transactionIds: string[], userPayload?: IJwtPayload) {
     const transactionList = await this.transactionRepository.findBy({id: In(transactionIds)})
     if(!transactionList.length) return;
@@ -115,6 +116,7 @@ export class TransactionService {
     return await this.transactionLogRepository.save(newTransactionLogs);
   }
 
+  @Transactional()
   async cancleTransaction(transactionId: string, userPayload?: IJwtPayload){
     const transaction = await this.transactionRepository.findOne({ where: {id: transactionId} })
     if(!transaction) throw new BadRequestException('transaction not found!');
@@ -125,6 +127,7 @@ export class TransactionService {
     });
   }
 
+  @Transactional()
   async cancleBulkTransaction(transactionIds: string[], userPayload?: IJwtPayload){
     const transactionList = await this.transactionRepository.findBy({id: In(transactionIds)})
     if(!transactionList.length) return;

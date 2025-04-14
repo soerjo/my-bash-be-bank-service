@@ -18,6 +18,8 @@ export class FindCustomerDto extends PaginationDto {
     @IsOptional()
     @IsString()
     public_account_number?: string;
+
+    bank_id?: number;
     
     // @ApiPropertyOptional()
     // @IsOptional()

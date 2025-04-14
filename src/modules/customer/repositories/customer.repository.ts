@@ -27,7 +27,7 @@ export class CustomerRepository extends Repository<CustomerEntity> {
         return repo.findOne({ where: { private_account_number: publicAccountNumber } });
     }
 
-    async findAll(dto: FindCustomerDto, userPayload: IJwtPayload, manager?: EntityManager) {
+    async findAll(dto: FindCustomerDto, manager?: EntityManager) {
         const repo = manager ? manager.getRepository(CustomerEntity) : this;
         const queryBuilder = repo.createQueryBuilder('customer');
         queryBuilder.select([
@@ -46,6 +46,10 @@ export class CustomerRepository extends Repository<CustomerEntity> {
           'customer.address as address',
           'customer.postal_code as postal_code',
         ]);
+
+        if(dto?.bank_id) {
+          queryBuilder.andWhere('customer.bank_id = :bank_id', { bank_id: dto.bank_id });
+        } 
         
         if(dto?.name) {
           queryBuilder.andWhere('customer.name ILIKE :name OR customer.full_name ILIKE :name', { name: `%${dto.name}%` });
