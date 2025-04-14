@@ -203,7 +203,7 @@ export class TransactionService {
         this.transactionDetailRepository.create({
           store_id: store.id,
           store_price: new Decimal(store.price),
-          store_amount: new Decimal(amount),
+          store_amount: new Decimal(detail_transaction.amount),
           store_total_price: storeTotalPrice,
           category_id: store.category.id,
           category_name: store.category.name,
@@ -279,7 +279,7 @@ export class TransactionService {
       name: result.name,
       photo_url: result.photo_url,
       balance: transaction?.present_balance,
-      transaction,
+      // transaction,
     }
   }
 
