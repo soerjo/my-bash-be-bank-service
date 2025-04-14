@@ -13,6 +13,11 @@ export class FindTransactionDto extends PaginationDto {
 
     @ApiPropertyOptional()
     @IsOptional()
+    @IsString()
+    private_account_number?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
     @Type(() => Date)
     @IsDate()
     start_date?: Date;
@@ -34,4 +39,6 @@ export class FindTransactionDto extends PaginationDto {
       )
     @ApiPropertyOptional({ type: [Number] })
     transaction_types?: TransactionTypeEnum[];
+
+    bank_id?: number;
 }

@@ -39,7 +39,6 @@ export class CustomerRepository extends Repository<CustomerEntity> {
           'customer.name as name',
           'customer.identity_number as identity_number',
           'customer.phone as phone',
-          'customer.balance as balance',
           'customer.province as province',
           'customer.regency as regency',
           'customer.district as district',
@@ -90,7 +89,6 @@ export class CustomerRepository extends Repository<CustomerEntity> {
     
         const processedData = rawData.map(data => ({
           ...data, 
-          balance: new Decimal(data.balance),
           full_name: staticDecrypt(data.full_name),
           name: staticDecrypt(data.name),
           identity_number: staticDecrypt(data.identity_number),

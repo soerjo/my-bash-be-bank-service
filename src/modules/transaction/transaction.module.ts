@@ -9,11 +9,13 @@ import { TransactionDetailRepository } from './repositories/transaction-detail.r
 import { TransactionLogRepository } from './repositories/transaction-log.repository';
 import { TransactionLogService } from './services/transaction-log.service';
 import { TransactionDetailService } from './services/transaction-detail.service';
+import { WarehouseModule } from '../warehouse/warehouse.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([TransactionEntity]),
     CustomerModule,
+    WarehouseModule,
   ],
   controllers: [
     TransactionController,

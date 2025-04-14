@@ -42,7 +42,7 @@ export class TransactionLogRepository extends Repository<TransactionLogEntity> {
       //     customer_account_number: transaction.customer_account_number,
       //     amount: transaction.amount,
       //     last_balance: lastLogTransaction?.present_balance,
-      //     present_balance: lastLogTransaction?.present_balance.add(transaction.amount),
+      //     present_balance: lastLogTransaction?.present_balance.plus(transaction.amount),
       //     transaction_type_id: transaction.transaction_type_id,
       //     last_transaction_id: transaction.last_transaction_id,
       //     last_transaction_log_id: lastLogTransaction?.id,

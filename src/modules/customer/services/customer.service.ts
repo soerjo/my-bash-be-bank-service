@@ -15,10 +15,6 @@ export class CustomerService {
 
   async create(createCustomerDto: CreateCustomerDto, manager?: EntityManager): Promise<CustomerEntity> {
     const repository = manager ? manager.getRepository(CustomerEntity) : this.customerRepository;
-
-    console.log("======================")
-    console.log({manager})
-    console.log("======================")
     
     const customer = await repository.findOne({ where: [
       { public_account_number: createCustomerDto.public_account_number },
@@ -70,8 +66,6 @@ export class CustomerService {
     return {
       id:customer.id,
       created_at:customer.created_at,
-      last_transaction_id:customer.last_transaction_id,
-      balance:customer.balance,
       user_id:customer.user_id,
       bank_id:customer.bank_id,
       private_account_number:customer.private_account_number,
@@ -94,9 +88,11 @@ export class CustomerService {
   }
   
   async getBalance(dto: GetBalanceDto) {
-    const result = await this.customerRepository.findOne({ where: { private_account_number: dto.private_account_number, password: dto.password } });
-
+    const result = await this.customerRepository.findOne({ where: { private_account_number: dto.private_account_number } });
     if(!result) {
+      throw new BadRequestException('Invalid private number or password');
+    }
+    if(!validatePassword(dto.password, result.password)) {
       throw new BadRequestException('Invalid private number or password');
     }
 
@@ -104,8 +100,6 @@ export class CustomerService {
       id: result.id,
       created_at: result.created_at,
       updated_at: result.updated_at,
-      last_transaction_id: result.last_transaction_id,
-      balance: Number(result.balance),
       user_id: result.user_id,
       bank_id: result.bank_id,
       private_account_number: result.private_account_number,
@@ -124,9 +118,6 @@ export class CustomerService {
   async findOneByPrivateAccountNumber(private_account_number: string, password: string) {
     const customer = await this.customerRepository.findOne({ where: { private_account_number } });
     if (!customer) return;
-    console.log({customer})
-    console.log({password})
-    console.log({isvalid: validatePassword(password, customer.password)})
     if (customer.password && !validatePassword(password, customer.password)) return;
 
     return customer;

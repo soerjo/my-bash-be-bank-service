@@ -69,10 +69,7 @@ export class CustomerController {
     return this.customerService.findOne(+id);
   }
 
-  @Post('balance')
-  getBalance(@Body() dto: GetBalanceDto) {
-    return this.customerService.getBalance(dto);
-  }
+
 
   // @Patch(':id')
   // update(@Param('id') id: string, @Body() updateCustomerDto: UpdateCustomerDto) {

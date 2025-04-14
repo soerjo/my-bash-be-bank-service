@@ -82,9 +82,7 @@ export class IntegrationService {
           },
           // manager
         );
-  
-        console.log('customer', customer);
-  
+    
         // generate transaction to init balance
         const transaction = await this.transactionService.createTransaction(
           {
@@ -97,20 +95,11 @@ export class IntegrationService {
           // manager
         );
   
-        console.log('transaction', transaction);
         // completed transaction to init balance
         await this.transactionService.completedTransaction(
           transaction.id, 
           0, 
           // manager
         );
-  
-        customer.last_transaction_id = transaction.id;
-        customer.balance = new Decimal(dataVar.balance);
-  
-        await this.customerService.update(
-          customer, 
-          // manager
-        );
-  }
+    }
 }

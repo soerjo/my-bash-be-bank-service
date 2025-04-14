@@ -46,7 +46,7 @@ export class TransactionLogEntity {
           },
         },
     })
-    last_balance: Decimal; // total amount of price
+    last_balance?: Decimal; // total amount of price
 
     @Column({
         default: 0, 
@@ -62,7 +62,7 @@ export class TransactionLogEntity {
           },
         },
     })
-    present_balance: Decimal; // total amount of price
+    present_balance?: Decimal; // total amount of price
 
     @Column()
     transaction_type_id: number; // 1: deposit, 2: withdraw

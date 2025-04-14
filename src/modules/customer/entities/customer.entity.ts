@@ -5,25 +5,6 @@ import Decimal from 'decimal.js';
 
 @Entity({ name: 'customer', schema: 'bank' })
 export class CustomerEntity extends MainEntityAbstract {
-  @Column({ unique: true, nullable: true })
-  last_transaction_id: string; // just success transaction id
-
-  @Column({
-      default: 0, 
-      type: 'decimal',
-      precision: 18,
-      scale: 4,
-      transformer: {
-        to: (value: Decimal | string | number): string => {
-          return new Decimal(value ?? 0).toFixed(4, Decimal.ROUND_HALF_UP);
-        },
-        from: (value: string): Decimal => {
-          return new Decimal(value ?? 0);
-        },
-      },
-  })
-  balance: Decimal;
-
   @Column({
     nullable: true,
   })

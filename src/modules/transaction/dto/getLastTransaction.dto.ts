@@ -1,11 +1,11 @@
-import { IsDateString, IsEnum, IsOptional, IsString } from "class-validator";
+import { IsDate, IsDateString, IsEnum, IsOptional, IsString } from "class-validator";
 import { TransactionTypeEnum } from "../../../common/constant/transaction-type.constant";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsRangeDate } from "../../../common/validation/isRangeDate.validation";
 import { Type } from "class-transformer";
 import { PaginationDto } from "../../../common/dto/pagination.dto";
 
-export class GetLastTransactionDto extends PaginationDto {
+export class GetLastTransactionDto {
 
   @ApiProperty()
   @IsString()
@@ -21,21 +21,17 @@ export class GetLastTransactionDto extends PaginationDto {
   @ApiPropertyOptional()
   transaction_types?: TransactionTypeEnum[];
 
-  @IsDateString()
-  @IsOptional()
   @ApiPropertyOptional()
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
   start_date?: Date;
 
   
-  @IsDateString()
-  @IsOptional()
-  // @IsGreaderDate('start_date')
-  @IsRangeDate('start_date', 7)
   @ApiPropertyOptional()
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  @IsRangeDate('start_date', 7)
   end_date?: Date;
-
-  // @IsString()
-  // @IsOptional()
-  // @ApiPropertyOptional()
-  // transaction_id?: string;
 }

@@ -30,7 +30,7 @@ export class TransactionRepository extends Repository<TransactionEntity> {
     return repoTransaction.save(createTransaction);
   }
 
-  async findAll(dto: FindTransactionDto, userPayload: IJwtPayload, manager?: EntityManager) {
+  async findAll(dto: FindTransactionDto, manager?: EntityManager) {
     const repo = manager ? manager.getRepository(TransactionEntity) : this;
     const queryBuilder = repo.createQueryBuilder('transaction');
     queryBuilder.leftJoin('transaction.transactionStatus', 'transaction_status', 'transaction_status.deleted_at IS NULL');
@@ -42,16 +42,21 @@ export class TransactionRepository extends Repository<TransactionEntity> {
       "transaction.customer_account_number as customer_account_number",
       "transaction.amount as amount",
       "transaction.message as message",
-      "transaction.reference_id as reference_id",
       "transaction.transaction_type_id as transaction_type_id",
       "transaction_type.name as transaction_type_name",
       "transaction.transaction_status_id as transaction_status_id",
       "transaction_status.name as transacion_status_name",
       "transaction.last_transaction_id as last_transaction_id",
-      "transaction.balance_before as balance_before",
-      "transaction.balance_after as balance_after",
       "transaction.created_at as created_at",
     ]);
+
+    if(dto?.bank_id) {
+      queryBuilder.andWhere('transaction.bank_id = :bank_id', { bank_id: dto.bank_id });
+    }
+
+    if(dto?.private_account_number) {
+      queryBuilder.andWhere('transaction.private_account_number = :private_account_number', { private_account_number: dto.private_account_number });
+    }
     
     if(dto?.customer_account_number) {
       queryBuilder.andWhere('transaction.customer_account_number = :customer_account_number', { customer_account_number: dto.customer_account_number });
@@ -90,9 +95,7 @@ export class TransactionRepository extends Repository<TransactionEntity> {
 
     const processedData = rawData.map(data => ({
       ...data, 
-      amount: new Decimal(data.amount),
-      balance_before: new Decimal(data.balance_before),
-      balance_after: new Decimal(data.balance_after),
+      amount: new Decimal(data.amount).toNumber(),
     }))
     
     return { data: processedData, meta}

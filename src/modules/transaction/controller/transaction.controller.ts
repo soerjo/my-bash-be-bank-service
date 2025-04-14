@@ -1,7 +1,6 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Query } from '@nestjs/common';
 import { TransactionService } from '../services/transaction.service';
 import { CreateTransactionDto } from '../dto/create-transaction.dto';
-import { UpdateTransactionDto } from '../dto/update-transaction.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../common/guard/jwt-auth.guard';
 import { RolesGuard } from '../../../common/guard/role.guard';
@@ -9,25 +8,20 @@ import { GetLastTransactionDto } from '../dto/getLastTransaction.dto';
 import { CurrentUser } from '../../../common/decorator/jwt-payload.decorator';
 import { IJwtPayload } from '../../../common/interface/jwt-payload.interface';
 import { FindTransactionDto } from '../dto/find-transaction.dto';
+import { Roles } from '../../../common/decorator/role.decorator';
+import { RoleEnum } from '../../../common/constant/role.constant';
+import { CreateTransactionCashDto } from '../dto/create-transaction-cash.dto';
+import { WithdrawCashDto } from '../dto/create-withdraw-cash.dto';
+import { GetBalanceDto } from '../dto/get-balance.dto';
 
 @ApiTags('Transaction')
 @Controller('transaction')
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
 
-  @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @ApiBearerAuth()
-  create(@Body() createTransactionDto: CreateTransactionDto) {
-    // return this.transactionService.create(createTransactionDto);
-    return "would new transaction method"
-  }
-
-  @Get()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @ApiBearerAuth()
-  findAll(@CurrentUser() userPayload: IJwtPayload, @Query() dto: FindTransactionDto) {
-    return this.transactionService.findAll(dto, userPayload);
+  @Post('balance')
+  getBalance(@Body() dto: GetBalanceDto) {
+    return this.transactionService.getBalance(dto);
   }
 
   @Post('last-transaction')
@@ -35,22 +29,39 @@ export class TransactionController {
     return this.transactionService.getLastTransaction(dto);
   }
 
-  @Get(':id')
+  @Post('deposit/thing')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  findOne(@Param('id') id: string) {
-    return this.transactionService.findOne(+id);
+  @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
+  deopsitThink(@Body() createDto: CreateTransactionDto, @CurrentUser() userPayload: IJwtPayload) {
+    return this.transactionService.depositThings(createDto, userPayload);
   }
 
-  @Patch(':id')
+  
+  @Post('deposit/cash')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  update(@Param('id') id: string, @Body() updateTransactionDto: UpdateTransactionDto) {
-    return this.transactionService.update(+id, updateTransactionDto);
+  @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
+  depositCash(@Body() createDto: CreateTransactionCashDto) {
+    return this.transactionService.depositCash(createDto);
   }
 
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.transactionService.remove(+id);
-  // }
+  
+  @Post('withdraw/cash')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
+  withdrawCash(@Body() createDto: WithdrawCashDto) {
+    return this.transactionService.withdrawCash(createDto); 
+  }
+
+  @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
+  findAll(@CurrentUser() userPayload: IJwtPayload, @Query() dto: FindTransactionDto) {
+    return this.transactionService.findAll({...dto, bank_id: userPayload.bank_id});
+  }
+
+
 }

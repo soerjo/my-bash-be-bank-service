@@ -12,7 +12,6 @@ import { BankModule } from './modules/bank/bank.module';
 import { CustomerModule } from './modules/customer/customer.module';
 import { TransactionModule } from './modules/transaction/transaction.module';
 import { IntegrationsModule } from './modules/integrations/integration.module';
-import { UserServiceModule } from './modules/user-service/user-service.module';
 import { UserModule } from './modules/user/user.module';
 import { WarehouseModule } from './modules/warehouse/warehouse.module';
 import { DataSource } from 'typeorm';
@@ -37,16 +36,12 @@ import { addTransactionalDataSource } from 'typeorm-transactional';
       },
     }),
     JwtModule.register({ global: true }),
-    // ExampleModule,
     BankModule,
     CustomerModule,
     TransactionModule,
     IntegrationsModule,
-    UserServiceModule,
     UserModule,
     WarehouseModule,
-    // AuthModule,
-    // UserModule,
     // other module...
   ],
   providers: [

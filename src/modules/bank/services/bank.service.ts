@@ -37,8 +37,6 @@ export class BankService {
         userPayload.token
       );
 
-      console.log({newWarehouse})
-
       console.log("=====================> user");
       const newUser = await this.userService.createUser({
           username: newBank.name.split(' ').join('_'),
