@@ -35,6 +35,7 @@ export class BankRepository extends Repository<BankEntity> {
       "bank.id as id",
       "bank.name as name",
       "bank.code as code",
+      "bank.email as email",
       "bank.province as province",
       "bank.regency as regency",
       "bank.district as district",

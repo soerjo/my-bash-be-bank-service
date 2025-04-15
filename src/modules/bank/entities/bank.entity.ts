@@ -73,8 +73,9 @@ export class BankEntity extends MainEntityAbstract {
   })
   phone: string;
 
-  @Column({
-    nullable: true,
-  })
+  @Column({ nullable: true })
   owner_id: number;
+
+  @Column({nullable: true})
+  trx_id: string;
 }

@@ -1,18 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { IResponse } from '../../../common/interface/request-response.interface';
 import { lastValueFrom } from 'rxjs';
 import { CreateWarehouseDto } from '../dto/create-warehouse.dto';
 import { IResponseCreateWarehouse } from '../dto/response-create-warehouse.dto';
-import { IResGetStore } from '../dto/response-get-soter.dto';
 
 @Injectable()
 export class WarehouseService {
-    constructor(
-      private readonly httpService: HttpService,
-      private readonly configService: ConfigService,
-    ) {}
+  private readonly logger = new Logger(WarehouseService.name);
+
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
+  ) {}
   
   async getWarehouseByIds(ids: number[], token: string) {
     const response$ = this.httpService.get<IResponse<{ data: Record<string, any>[]; meta: Record<string, any> }>>(
@@ -29,32 +30,62 @@ export class WarehouseService {
   }
 
   async createWarehouse(dto: CreateWarehouseDto, token: string) {
-    const response$ = this.httpService.post<IResponse<IResponseCreateWarehouse>>(
-      this.configService.get<string>('WAREHOUSE_SERVICE_URL') + '/warehouse',
-      {
-        ...dto,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
+    try {
+      const response$ = this.httpService.post<IResponse<IResponseCreateWarehouse>>(
+        this.configService.get<string>('WAREHOUSE_SERVICE_URL') + '/warehouse',
+        {
+          ...dto,
         },
-      },
-    );
-    const response = await lastValueFrom(response$);
-    return response.data.data;
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      const response = await lastValueFrom(response$);
+      return response.data.data;
+    } catch (error) {
+      this.logger.error('Failed to create warehouse', error.stack || error.message);
+      throw new BadRequestException(error.response.data.message);
+    }
+  }
+
+  async failedCreateWarehouse(trx_id: string, token: string) {
+    this.logger.log('=====================> delete trx_id warehouse trx ');
+    try {
+      const response$ = this.httpService.delete<IResponse<IResponseCreateWarehouse>>(
+        this.configService.get<string>('WAREHOUSE_SERVICE_URL') + '/warehouse/failed/' + trx_id,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      const response = await lastValueFrom(response$);
+      return response.data.data;
+    } catch (error) {
+      this.logger.error('Failed to cancle create trx warehouse', error.stack || error.message);
+      // throw new BadRequestException(error.response.data.message);
+    }
   }
 
   async getStoreByIds(ids: number[], token: string): Promise<Record<string, any>[]> {
-    const response$ = this.httpService.get<IResponse<Record<string, any>[]>>(
-      this.configService.get<string>('WAREHOUSE_SERVICE_URL') + '/store/bulk',
-      {
-        params: { ids },
-        headers: {
-          Authorization: `Bearer ${token}`,
+    try {
+      const response$ = this.httpService.get<IResponse<Record<string, any>[]>>(
+        this.configService.get<string>('WAREHOUSE_SERVICE_URL') + '/store/bulk',
+        {
+          params: { ids },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      },
-    );
-    const response = await lastValueFrom(response$);
-    return response.data.data;
+      );
+      const response = await lastValueFrom(response$);
+      return response.data.data;
+    } catch (error) {
+      this.logger.error('Failed to create store', error.stack || error.message);
+      throw new BadRequestException(error.response.data.message);
+
+    }
   }
 }

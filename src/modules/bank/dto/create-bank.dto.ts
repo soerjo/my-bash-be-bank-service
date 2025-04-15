@@ -1,10 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { Transform } from "class-transformer";
+import { IsNotEmpty, IsNumber, IsOptional, IsString, Length } from "class-validator";
 
 export class CreateBankDto {
     @IsString()
     @IsNotEmpty()
     @ApiProperty()
+    @Transform(({ value }) => value.trim().toLowerCase())
+    @Length(4,50)
     // should add validation that the name is not contain some dangerous word
     name: string;  
     
@@ -47,4 +50,6 @@ export class CreateBankDto {
     @ApiPropertyOptional()
     @IsString()
     phone: string;
+
+    trx_id?: string;
 }
