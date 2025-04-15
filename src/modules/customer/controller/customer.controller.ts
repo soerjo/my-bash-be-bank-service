@@ -17,13 +17,10 @@ import { GetBalanceDto } from '../dto/get-balance.dto';
 export class CustomerController {
   constructor(private readonly customerService: CustomerService) {}
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @ApiBearerAuth()
-  @Roles([
-    RoleEnum.SYSTEM_ADMIN,
-    RoleEnum.ADMIN_BANK,
-  ])
   @Post()
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
   create(@CurrentUser() userPayload: IJwtPayload, @Body() createCustomerDto: CreateCustomerDto) {
     return this.customerService.create({
       ...createCustomerDto,
@@ -31,24 +28,26 @@ export class CustomerController {
   });
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @ApiBearerAuth()
-  @Roles([
-    RoleEnum.SYSTEM_ADMIN,
-    RoleEnum.ADMIN_BANK,
-  ])
   @Get()
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
   findAll(@CurrentUser() userPayload: IJwtPayload, @Query() dto: FindCustomerDto) {
     return this.customerService.findAll(dto, userPayload);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get('total-customer')
   @ApiBearerAuth()
-  @Roles([
-    RoleEnum.SYSTEM_ADMIN,
-    RoleEnum.ADMIN_BANK,
-  ])
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
+  getTotalCustomer(@CurrentUser() userPayload: IJwtPayload) {
+    return this.customerService.getTotalCustomer(userPayload);
+  }
+
   @Get('reset-password/:id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
   resetPassword(@CurrentUser() userPayload: IJwtPayload, @Param('id') id: string) {
     return this.customerService.resetPassword(+id, userPayload);
   }
@@ -58,13 +57,10 @@ export class CustomerController {
     return this.customerService.setNewPassword(dto);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @ApiBearerAuth()
-  @Roles([
-    RoleEnum.SYSTEM_ADMIN,
-    RoleEnum.ADMIN_BANK,
-  ])
   @Get(':id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
   findOne(@Param('id') id: string) {
     return this.customerService.findOne(+id);
   }

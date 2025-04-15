@@ -183,6 +183,14 @@ export class TransactionService {
     };
   }
 
+  getTotalBalance(userPayload: IJwtPayload) {
+    return this.transactionLogRepository.getTotalBalance(userPayload.bank_id)
+  }
+
+  getTotalTransaction(userPayload: IJwtPayload) {
+    return this.transactionRepository.count({where: {bank_id: userPayload.bank_id, transaction_status_id: TransactionStatusEnum.SUCCESS}})
+  }
+
   @Transactional()
   async depositThings(dto: CreateTransactionDto, userPayload: IJwtPayload) {
     //get costumer by account customer_id

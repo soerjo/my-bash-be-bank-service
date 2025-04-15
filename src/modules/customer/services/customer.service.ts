@@ -57,6 +57,10 @@ export class CustomerService {
     customer.save();
   }
 
+  getTotalCustomer(userPayload: IJwtPayload){
+    return this.customerRepository.count({where: {bank_id: userPayload.bank_id}});
+  }
+
   findAll(dto: FindCustomerDto, userPayload: IJwtPayload) {
     return this.customerRepository.findAll({...dto, bank_id: userPayload.bank_id});
   }

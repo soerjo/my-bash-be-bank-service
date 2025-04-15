@@ -80,5 +80,21 @@ export class TransactionController {
     return this.transactionService.findAll({...dto, bank_id: userPayload.bank_id});
   }
 
+  @Get('total-balance')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
+  getbalance(@CurrentUser() userPayload: IJwtPayload) {
+    return this.transactionService.getTotalBalance(userPayload);
+  }
+
+  @Get('total-transaction')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
+  getTotalTransaction(@CurrentUser() userPayload: IJwtPayload) {
+    return this.transactionService.getTotalTransaction(userPayload);
+  }
+
 
 }

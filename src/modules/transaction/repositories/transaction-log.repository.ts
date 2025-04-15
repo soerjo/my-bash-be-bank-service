@@ -2,6 +2,8 @@ import { Injectable } from "@nestjs/common";
 import { DataSource, EntityManager, Repository } from "typeorm";
 import { TransactionLogEntity } from "../entities/tansaction-log.entity";
 import { CreateTransactionLogDto } from "../dto/create-transactino-log.dto";
+import { TransactionTypeEnum } from "../../../common/constant/transaction-type.constant";
+import Decimal from "decimal.js";
 
 @Injectable()
 export class TransactionLogRepository extends Repository<TransactionLogEntity> {
@@ -36,21 +38,13 @@ export class TransactionLogRepository extends Repository<TransactionLogEntity> {
         return repository.findOne({ where: { last_transaction_log_id: TransactionLogId }});
       }
 
-      // createTransaction() {
-      //   const newTransactionLog = this.repositoryTrxLog.create({
-      //     customer_id: transaction.customer_id,
-      //     customer_account_number: transaction.customer_account_number,
-      //     amount: transaction.amount,
-      //     last_balance: lastLogTransaction?.present_balance,
-      //     present_balance: lastLogTransaction?.present_balance.plus(transaction.amount),
-      //     transaction_type_id: transaction.transaction_type_id,
-      //     last_transaction_id: transaction.last_transaction_id,
-      //     last_transaction_log_id: lastLogTransaction?.id,
-      //     transaction_id: transaction.id,
-      //     bank_id: transaction.bank_id,
-      //     created_by: createByUserId,
-      //   })
+      async getTotalBalance(bank_id: number){
+        const query = this.createQueryBuilder('transaction_log');
+        query.select('SUM(transaction_log.present_balance)', 'total_balance');
+        query.where('transaction_log.bank_id = :bank_id', { bank_id });
+        query.andWhere('transaction_log.transaction_type_id = :transaction_type_id', { transaction_type_id: TransactionTypeEnum.DEPOSIT });
 
-      //   return repositoryTrxLog.save(newTransactionLog);
-      // }
+        const {total_balance} = await query.getRawOne();
+        return new Decimal(total_balance).toNumber();
+      }
 }
