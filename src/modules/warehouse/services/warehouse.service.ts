@@ -5,6 +5,8 @@ import { IResponse } from '../../../common/interface/request-response.interface'
 import { lastValueFrom } from 'rxjs';
 import { CreateWarehouseDto } from '../dto/create-warehouse.dto';
 import { IResponseCreateWarehouse } from '../dto/response-create-warehouse.dto';
+import { DepositItemBulkDto } from '../dto/create-transaction-warehouse.dto';
+import { CancelTransactionDto } from '../dto/cancle-transaction.dto';
 
 @Injectable()
 export class WarehouseService {
@@ -86,6 +88,48 @@ export class WarehouseService {
       this.logger.error('Failed to create store', error.stack || error.message);
       throw new BadRequestException(error.response.data.message);
 
+    }
+  }
+
+  async createTransactionWarehouse(dto: DepositItemBulkDto, token: string) {
+    try {
+      const response$ = this.httpService.post<IResponse<IResponseCreateWarehouse>>(
+        this.configService.get<string>('WAREHOUSE_SERVICE_URL') + '/transaction-store/deposit/bulk',
+        {
+          ...dto,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      const response = await lastValueFrom(response$);
+      return response.data.data;
+    } catch (error) {
+      this.logger.error('Failed to create transction warehouse', error.stack || error.message);
+      throw new BadRequestException(error.response.data.message);
+    }
+  }
+
+  async cancleTransactionWarehouse(dto: CancelTransactionDto, token: string) {
+    try {
+      const response$ = this.httpService.patch<IResponse<IResponseCreateWarehouse>>(
+        this.configService.get<string>('WAREHOUSE_SERVICE_URL') + '/transaction-store/cancel',
+        {
+          ...dto,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      const response = await lastValueFrom(response$);
+      return response.data.data;
+    } catch (error) {
+      this.logger.error('Failed to cancle transaction warehouse', error.stack || error.message);
+      throw new BadRequestException(error.response.data.message);
     }
   }
 }

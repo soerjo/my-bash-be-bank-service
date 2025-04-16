@@ -33,6 +33,38 @@ export class TransactionLogEntity {
     amount: Decimal; // total amount of price
 
     @Column({
+      default: 0, 
+      type: 'decimal',
+      precision: 18,
+      scale: 4,
+      transformer: {
+        to: (value: Decimal | string | number): string => {
+          return new Decimal(value ?? 0).toFixed(4, Decimal.ROUND_HALF_UP);
+        },
+        from: (value: string): Decimal => {
+          return new Decimal(value ?? 0);
+        },
+      },
+    })
+    fee_amount: Decimal; // total amount of price
+
+    @Column({
+      default: 0, 
+      type: 'decimal',
+      precision: 18,
+      scale: 4,
+      transformer: {
+        to: (value: Decimal | string | number): string => {
+          return new Decimal(value ?? 0).toFixed(4, Decimal.ROUND_HALF_UP);
+        },
+        from: (value: string): Decimal => {
+          return new Decimal(value ?? 0);
+        },
+      },
+    })
+    final_amount: Decimal; // total amount of price
+
+    @Column({
         default: 0, 
         type: 'decimal',
         precision: 18,

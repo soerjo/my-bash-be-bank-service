@@ -1,8 +1,10 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsUUID } from "class-validator";
+import { ArrayMinSize, IsArray, IsUUID } from "class-validator";
 
 export class UpdateTransactionStatusDto {
-        @IsUUID('all', { each: true })
         @ApiProperty({ type: [String] })
+        @IsArray()
+        @ArrayMinSize(1)
+        @IsUUID('all', { each: true })
         transaction_id: string[];
 }

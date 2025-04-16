@@ -29,19 +29,11 @@ export class CustomerEntity extends MainEntityAbstract {
 
   @Column({
     nullable: true,
-    transformer: {
-      to: (value: string) => staticEncrypt(value), // Encrypt before saving
-      from: (value: string) => staticDecrypt(value), // Decrypt when retrieving
-    },
   })
   full_name: string;
 
   @Column({
     nullable: true,
-    transformer: {
-      to: (value: string) => staticEncrypt(value), // Encrypt before saving
-      from: (value: string) => staticDecrypt(value), // Decrypt when retrieving
-    },
   })
   name: string;
 

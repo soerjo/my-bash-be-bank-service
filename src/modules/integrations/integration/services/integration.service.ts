@@ -1,6 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { CreateIntegrationDto } from '../dto/create-integration.dto';
-import { UpdateIntegrationDto } from '../dto/update-integration.dto';
+import { Injectable } from '@nestjs/common';
 import { MongooseCustomerService } from '../../mongoose-customer/services/mongoose-customer.service';
 import { CustomerService } from '../../../../modules/customer/services/customer.service';
 import { DataSource } from 'typeorm';
@@ -9,7 +7,8 @@ import { TransactionTypeEnum } from '../../../../common/constant/transaction-typ
 import {Customer} from '../../mongoose-customer/entities/customer.schema'
 import { TransactionService } from '../../../../modules/transaction/services/transaction.service';
 import { IntegrationRepositories } from '../repositories/integration.repository';
-import { Propagation, Transactional } from 'typeorm-transactional';
+import { Transactional } from 'typeorm-transactional';
+import { IJwtPayload } from '../../../../common/interface/jwt-payload.interface';
 // import { Transactional } from 'typeorm-transactional-cls-hooked';
 
 
@@ -24,12 +23,12 @@ export class IntegrationService {
     // private readonly transactionRepositories: TransactionRepository,
   ) {}  
 
-  async sync(nextPage = 1, iteration = 0) {
-    let { data: dataVar, totalPages, page } = await this.mongooseCustomerService.findAll(nextPage);
+  async sync(nextPage = 1, iteration = 0, bankSampahId: string, userPayload: IJwtPayload) {
+    let { data: dataVar, totalPages, page } = await this.mongooseCustomerService.findAll(nextPage, 50, bankSampahId);
     
     for (let index = 0; index < dataVar.length; index++) {
       try {
-        await this.integration(dataVar[index]);
+        await this.integration(dataVar[index], userPayload);
         console.log('iteration => ', iteration ++);
 
       } catch (error) {
@@ -48,13 +47,13 @@ export class IntegrationService {
     
     if (page == totalPages) return;
     
-    return this.sync(page + 1, iteration);
+    return this.sync(page + 1, iteration, bankSampahId, userPayload);
     // return;
   }
   
   // @Transactional({propagation: Propagation.MANDATORY})
   @Transactional()
-  async integration(dataVar: Customer){
+  async integration(dataVar: Customer, userPayload: IJwtPayload){
       if(!dataVar?.accountNumber) {
         throw new Error('Account number is not found!');
       }
@@ -79,6 +78,7 @@ export class IntegrationService {
             village: dataVar.address[0]?.region,
             address: dataVar.address[0]?.street,
             postal_code: dataVar.address[0]?.postalCode,
+            bank_id: userPayload.bank_id,
           },
           // manager
         );
@@ -91,6 +91,7 @@ export class IntegrationService {
             amount: new Decimal(dataVar.balance),
             transaction_type_id: TransactionTypeEnum.DEPOSIT,
             message: 'Initial Balance',
+            bank_id: userPayload.bank_id,
           },
           // manager
         );

@@ -3,7 +3,7 @@ import { CreateMongooseCustomerDto } from '../dto/create-mongoose-customer.dto';
 import { UpdateMongooseCustomerDto } from '../dto/update-mongoose-customer.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Customer } from '../entities/customer.schema';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 @Injectable()
 export class MongooseCustomerService {
@@ -18,11 +18,11 @@ export class MongooseCustomerService {
     return 'This action adds a new mongooseCustomer';
   }
 
-  async findAll(page = 1, limit = 10){
+  async findAll(page = 1, limit = 10, bankSampahId: string) {
     const skip = (page - 1) * limit;
 
     const customers = await this.customersModel
-      .find()
+      .find({ bankSampah: new Types.ObjectId(bankSampahId)})
       .sort({ createdAt: -1 }) // -1 untuk descending, 1 untuk ascending
       .skip(skip)
       .limit(limit)

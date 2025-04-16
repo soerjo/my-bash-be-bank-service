@@ -1,16 +1,16 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsArray, IsInt, IsNumber, IsString, ValidateNested } from "class-validator";
+import { ArrayMinSize, IsArray, IsInt, IsNumber, IsString, ValidateNested } from "class-validator";
 import Decimal from "decimal.js";
 
 export class CreateTransactionDetailDto {
-        @ApiProperty()
-        @IsInt()
-        store_id?: number;
+    @ApiProperty()
+    @IsInt()
+    store_id?: number;
 
-        @ApiProperty()
-        @IsNumber()
-        amount: number;
+    @ApiProperty()
+    @IsNumber()
+    amount: number;
 }
 
 export class CreateTransactionDto {
@@ -24,6 +24,7 @@ export class CreateTransactionDto {
 
     @ApiProperty({ type: [CreateTransactionDetailDto] })
     @IsArray()
+    @ArrayMinSize(1)
     @ValidateNested({ each: true })
     @Type(() => CreateTransactionDetailDto)
     detail_transaction: CreateTransactionDetailDto[];

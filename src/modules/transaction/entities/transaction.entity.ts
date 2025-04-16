@@ -28,7 +28,55 @@ export class TransactionEntity extends HistoryEntityAbstract {
         },
     })
     amount: Decimal; // total amount of price
-    
+
+    @Column({
+      default: 0, 
+      type: 'decimal',
+      precision: 18,
+      scale: 4,
+      transformer: {
+        to: (value: Decimal | string | number): string => {
+          return new Decimal(value ?? 0).toFixed(4, Decimal.ROUND_HALF_UP);
+        },
+        from: (value: string): Decimal => {
+          return new Decimal(value ?? 0);
+        },
+      },
+    })
+    system_fee_percent: Decimal; // total amount of price
+
+    @Column({
+      default: 0, 
+      type: 'decimal',
+      precision: 18,
+      scale: 4,
+      transformer: {
+        to: (value: Decimal | string | number): string => {
+          return new Decimal(value ?? 0).toFixed(4, Decimal.ROUND_HALF_UP);
+        },
+        from: (value: string): Decimal => {
+          return new Decimal(value ?? 0);
+        },
+      },
+    })
+    system_fee_amount: Decimal; // total amount of price
+
+    @Column({
+      default: 0, 
+      type: 'decimal',
+      precision: 18,
+      scale: 4,
+      transformer: {
+        to: (value: Decimal | string | number): string => {
+          return new Decimal(value ?? 0).toFixed(4, Decimal.ROUND_HALF_UP);
+        },
+        from: (value: string): Decimal => {
+          return new Decimal(value ?? 0);
+        },
+      },
+    })
+    final_amount: Decimal; // total amount of price
+      
     @Column()
     message: string;
 

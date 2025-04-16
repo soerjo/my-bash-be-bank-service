@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateTransactionDto, DefaultCreateTransactionDto } from '../dto/create-transaction.dto';
-import { UpdateTransactionDto } from '../dto/update-transaction.dto';
-import { EntityManager, In, LessThan, MoreThan } from 'typeorm';
+import { EntityManager, In } from 'typeorm';
 import { FindTransactionDto } from '../dto/find-transaction.dto';
 import { IJwtPayload } from '../../../common/interface/jwt-payload.interface';
 import { TransactionRepository } from '../repositories/transaction.repository';
@@ -9,10 +8,7 @@ import { CustomerService } from '../../../modules/customer/services/customer.ser
 import { GetLastTransactionDto } from '../dto/getLastTransaction.dto';
 import { TransactionStatusEnum } from '../../../common/constant/transaction-status.constant';
 import { TransactionLogRepository } from '../repositories/transaction-log.repository';
-// import { Transactional } from 'typeorm-transactional-cls-hooked';
-// import { Transactional } from 'typeorm-transactional';
 import { TransactionEntity } from '../entities/transaction.entity';
-import { TransactionLogEntity } from '../entities/tansaction-log.entity';
 import { TransactionDetailRepository } from '../repositories/transaction-detail.repository';
 import { CreateTransactionCashDto } from '../dto/create-transaction-cash.dto';
 import { WithdrawCashDto } from '../dto/create-withdraw-cash.dto';
@@ -34,7 +30,7 @@ export class TransactionService {
   ) {}
 
   // @Transactional()
-  async createTransaction(createTransactionDto: DefaultCreateTransactionDto, manager?: EntityManager) {
+  async createTransaction(createTransactionDto: DefaultCreateTransactionDto,  manager?: EntityManager) {
     const repository = manager ? manager.getRepository(TransactionEntity) : this.transactionRepository;
 
     const customer = await this.customerService.findOneById(createTransactionDto.customer_id, manager);
@@ -44,6 +40,7 @@ export class TransactionService {
       ...createTransactionDto,
       customer_id: customer.id,
       transaction_status_id: TransactionStatusEnum.PENDING,
+      bank_id: createTransactionDto.bank_id,
     });
 
     return repository.save(createTransaction);
@@ -76,7 +73,6 @@ export class TransactionService {
           bank_id: transaction.bank_id,
           created_by: createByUserId,
     });
-
   }
 
   @Transactional()
@@ -117,26 +113,20 @@ export class TransactionService {
   }
 
   @Transactional()
-  async cancleTransaction(transactionId: string, userPayload?: IJwtPayload){
-    const transaction = await this.transactionRepository.findOne({ where: {id: transactionId} })
-    if(!transaction) throw new BadRequestException('transaction not found!');
-
-    return this.transactionRepository.update(transaction.id, {
-      transaction_status_id: TransactionStatusEnum.FAILED,
-      updated_by: userPayload.id,
-    });
-  }
-
-  @Transactional()
   async cancleBulkTransaction(transactionIds: string[], userPayload?: IJwtPayload){
     const transactionList = await this.transactionRepository.findBy({id: In(transactionIds)})
     if(!transactionList.length) return;
 
     const updatedTransactionIds = transactionList.map((transaction) => transaction.id);
-    return this.transactionRepository.update(updatedTransactionIds, {
+    await this.transactionRepository.update(updatedTransactionIds, {
       transaction_status_id: TransactionStatusEnum.FAILED,
       updated_by: userPayload.id,
     });
+
+    // do sync to warehouse-service
+    await this.warehouseService.cancleTransactionWarehouse({
+      transaction_bank_id: updatedTransactionIds,
+    }, userPayload.token);
   }
 
   async getLastTransaction(dto: GetLastTransactionDto) {
@@ -214,12 +204,11 @@ export class TransactionService {
         this.transactionDetailRepository.create({
           store_id: store.id,
           store_price: new Decimal(store.price),
-          store_amount: new Decimal(detail_transaction.amount),
-          store_total_price: storeTotalPrice,
+          amount: new Decimal(detail_transaction.amount),
+          final_price: storeTotalPrice,
           category_id: store.category.id,
           category_name: store.category.name,
           category_code: store.category.code,
-          category_description: store.category.description,
           unit_id: store.category.unit.id,
           unit_name: store.category.unit.name,
           unit_code: store.category.unit.code,
@@ -233,7 +222,7 @@ export class TransactionService {
 
     // create transaction
     const lastTransaction = await this.transactionRepository.findOne({where: {customer_id: customer.id}, order: {created_at: 'DESC'}});
-    const transaction = await this.createTransaction({
+    const createtransaction = await this.createTransaction({
       amount: new Decimal(amount),
       customer_account_number: customer.public_account_number,
       customer_id: customer.id,
@@ -243,6 +232,8 @@ export class TransactionService {
       bank_id: userPayload.bank_id,
     })
 
+    const transaction = await this.transactionRepository.save(createtransaction);
+
     const createNewDetailTransaction = transactionDetailList.map((detail) =>
       this.transactionDetailRepository.create({
         ...detail,
@@ -251,7 +242,20 @@ export class TransactionService {
     )
 
     // bulk create transaction detail
-    await this.transactionDetailRepository.save(createNewDetailTransaction)
+    await this.transactionDetailRepository.save(createNewDetailTransaction);
+
+    // do sync to warehouse-service
+    await this.warehouseService.createTransactionWarehouse({
+      message: dto.message,
+      trx_id: transaction.id,
+      transaction_bank_id: transaction.id,
+      transactions: transactionDetailList.map((detail) => ({
+        store_id: detail.store_id,
+        amount: detail.amount.toNumber(),
+      })),
+    }, userPayload.token);
+
+    return transaction;
   }
 
   async depositCash(dto: CreateTransactionCashDto) {
@@ -276,7 +280,14 @@ export class TransactionService {
     const result = await this.customerService.findOneByPrivateAccountNumber(dto.private_account_number, dto.password);
     if(!result) throw new BadRequestException('Invalid private number or password');
     
-    const transaction = await this.transactionLogRepository.findOne({where: {customer_account_number: result.public_account_number}, order: {created_at: 'DESC'}})
+    const transaction = await this.transactionLogRepository.findOne({
+      where: {
+        customer_account_number: result.public_account_number
+      }, 
+      order: {
+        created_at: 'DESC'
+      },
+    })
 
     return {
       id: result.id,
@@ -289,7 +300,7 @@ export class TransactionService {
       full_name: result.full_name,
       name: result.name,
       photo_url: result.photo_url,
-      balance: transaction?.present_balance,
+      balance: transaction.present_balance.toNumber(),
       // transaction,
     }
   }

@@ -15,8 +15,8 @@ export class MongooseCustomerController {
   // }
 
   @Get()
-  findAll(@Query('page') page: number, @Query('limit') limit: number) {
-    return this.mongooseCustomerService.findAll(page ,limit);
+  findAll( @Query('bank_sampah_id') bankSampahId: string, @Query('page') page?: number, @Query('limit') limit?: number) {
+    return this.mongooseCustomerService.findAll(page ,limit, bankSampahId);
   }
 
   // @Get(':id')

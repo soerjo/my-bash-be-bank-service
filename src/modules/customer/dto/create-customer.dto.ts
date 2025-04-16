@@ -80,4 +80,6 @@ export class CreateCustomerDto {
     phone?: string;
 
     created_by?: number;
+
+    bank_id?: number;
 }

@@ -29,6 +29,7 @@ export class CustomerService {
       public_account_number: createCustomerDto.public_account_number ?? generateUniqueNumber(lastCustomer?.id ?? 0, "PUB"),
       created_by: createCustomerDto.created_by,
       password: encryptPassword(createCustomerDto.password),
+      bank_id: createCustomerDto?.bank_id,
     })
     return repository.save(newCustomer);
   }

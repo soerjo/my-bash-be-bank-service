@@ -1,41 +1,23 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { IntegrationService } from '../services/integration.service';
-import { CreateIntegrationDto } from '../dto/create-integration.dto';
-import { UpdateIntegrationDto } from '../dto/update-integration.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../../../common/guard/jwt-auth.guard';
+import { CurrentUser } from '../../../../common/decorator/jwt-payload.decorator';
+import { IJwtPayload } from '../../../../common/interface/jwt-payload.interface';
+import { RolesGuard } from '../../../../common/guard/role.guard';
+import { RoleEnum } from '../../../../common/constant/role.constant';
+import { Roles } from '../../../../common/decorator/role.decorator';
 
 @ApiTags('Integration')
 @Controller('integration')
 export class IntegrationController {
   constructor(private readonly integrationService: IntegrationService) {}
 
-  // @Post()
-  // create(@Body() createIntegrationDto: CreateIntegrationDto) {
-  //   return this.integrationService.create(createIntegrationDto);
-  // }
-
-  // @Get()
-  // findAll() {
-  //   return this.integrationService.findAll();
-  // }
-
-  @Get("/sync")
-  sync() {
-    return this.integrationService.sync();
+  @Get("/sync/:bank_sampah_Id")
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
+  sync(@Param('bank_sampah_Id') bankSampahId: string, @CurrentUser() userPayload: IJwtPayload) {
+    return this.integrationService.sync(1, 0, bankSampahId, userPayload);
   }
-
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.integrationService.findOne(+id);
-  // }
-
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateIntegrationDto: UpdateIntegrationDto) {
-  //   return this.integrationService.update(+id, updateIntegrationDto);
-  // }
-
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.integrationService.remove(+id);
-  // }
 }
