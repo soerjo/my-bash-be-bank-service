@@ -36,9 +36,16 @@ export class TransactionService {
     const customer = await this.customerService.findOneById(createTransactionDto.customer_id, manager);
     if (!customer) throw new BadRequestException('customer not found!');
 
+    const system_fee_percent = 0; // it should be fetch systems service;
+    const system_fee_amount = new Decimal(system_fee_percent).mul(createTransactionDto.amount).div(100);
+    const amount = new Decimal(createTransactionDto.amount).minus(system_fee_amount);
+
     const createTransaction = repository.create({
       ...createTransactionDto,
       customer_id: customer.id,
+      system_fee_percent: system_fee_percent,
+      system_fee_amount: system_fee_amount,
+      amount: amount,
       transaction_status_id: TransactionStatusEnum.PENDING,
       bank_id: createTransactionDto.bank_id,
     });
@@ -222,7 +229,7 @@ export class TransactionService {
 
     // create transaction
     const lastTransaction = await this.transactionRepository.findOne({where: {customer_id: customer.id}, order: {created_at: 'DESC'}});
-    const createtransaction = await this.createTransaction({
+    const transaction = await this.createTransaction({
       amount: new Decimal(amount),
       customer_account_number: customer.public_account_number,
       customer_id: customer.id,
@@ -232,7 +239,7 @@ export class TransactionService {
       bank_id: userPayload.bank_id,
     })
 
-    const transaction = await this.transactionRepository.save(createtransaction);
+    // const transaction = await this.transactionRepository.save(createtransaction);
 
     const createNewDetailTransaction = transactionDetailList.map((detail) =>
       this.transactionDetailRepository.create({
