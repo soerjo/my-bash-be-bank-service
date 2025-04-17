@@ -53,16 +53,14 @@ export class TransactionController {
   deopsitThing(@Body() createDto: CreateTransactionDto, @CurrentUser() userPayload: IJwtPayload) {
     return this.transactionService.depositThings(createDto, userPayload);
   }
-
   
-  @Post('deposit/cash')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @ApiBearerAuth()
-  @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
-  depositCash(@Body() createDto: CreateTransactionCashDto) {
-    return this.transactionService.depositCash(createDto);
-  }
-
+  // @Post('deposit/cash')
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @ApiBearerAuth()
+  // @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
+  // depositCash(@Body() createDto: CreateTransactionCashDto) {
+  //   return this.transactionService.depositCash(createDto);
+  // }
   
   @Post('withdraw/cash')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -95,6 +93,4 @@ export class TransactionController {
   getTotalTransaction(@CurrentUser() userPayload: IJwtPayload) {
     return this.transactionService.getTotalTransaction(userPayload);
   }
-
-
 }

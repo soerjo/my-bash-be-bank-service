@@ -132,4 +132,26 @@ export class WarehouseService {
       throw new BadRequestException(error.response.data.message);
     }
   }
+
+  async completeTransactionWarehouse(transaction_bank_ids: string[], token: string) {
+    try {
+      const response$ = this.httpService.patch<IResponse<IResponseCreateWarehouse>>(
+        this.configService.get<string>('WAREHOUSE_SERVICE_URL') + '/transaction-store/complete',
+        {
+          transaction_bank_id: transaction_bank_ids,
+          trx_id: transaction_bank_ids,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      const response = await lastValueFrom(response$);
+      return response.data.data;
+    } catch (error) {
+      this.logger.error('Failed to cancle transaction warehouse', error.stack || error.message);
+      throw new BadRequestException(error.response.data.message);
+    }
+  }
 }

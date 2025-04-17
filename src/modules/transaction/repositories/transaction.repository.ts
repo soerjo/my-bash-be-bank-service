@@ -78,6 +78,9 @@ export class TransactionRepository extends Repository<TransactionEntity> {
       queryBuilder.andWhere('transaction.transaction_type_id IN (:...transaction_types)', { transaction_types: dto.transaction_types });
     }
 
+    if(dto.transaction_status) {
+      queryBuilder.andWhere('transaction.transaction_status_id IN (:...transaction_status)', { transaction_status: dto.transaction_status });
+    }
 
     queryBuilder.orderBy('transaction.created_at', 'DESC')
     queryBuilder.offset((dto.page - 1) * dto.take).limit(dto.take)

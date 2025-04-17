@@ -116,6 +116,12 @@ export class TransactionService {
       newTransactionLogs.push(newTransactionLog);
     }
 
+    // do sync to warehouse-service
+    // await this.warehouseService.completeTransactionWarehouse(
+    //   transactionList.map((transaction) => transaction.id),
+    //   userPayload.token,
+    // );
+    
     return await this.transactionLogRepository.save(newTransactionLogs);
   }
 
@@ -131,9 +137,9 @@ export class TransactionService {
     });
 
     // do sync to warehouse-service
-    await this.warehouseService.cancleTransactionWarehouse({
-      transaction_bank_id: updatedTransactionIds,
-    }, userPayload.token);
+    // await this.warehouseService.cancleTransactionWarehouse({
+    //   transaction_bank_id: updatedTransactionIds,
+    // }, userPayload.token);
   }
 
   async getLastTransaction(dto: GetLastTransactionDto) {
