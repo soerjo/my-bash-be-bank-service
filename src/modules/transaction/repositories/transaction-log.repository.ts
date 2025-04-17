@@ -38,10 +38,12 @@ export class TransactionLogRepository extends Repository<TransactionLogEntity> {
         return repository.findOne({ where: { last_transaction_log_id: TransactionLogId }});
       }
 
-      async getTotalBalance(bank_id: number){
+      async getTotalBalance(bank_id?: number){
         const query = this.createQueryBuilder('transaction_log');
         query.select('SUM(transaction_log.present_balance)', 'total_balance');
-        query.where('transaction_log.bank_id = :bank_id', { bank_id });
+
+        bank_id && query.where('transaction_log.bank_id = :bank_id', { bank_id });
+        
         query.andWhere('transaction_log.transaction_type_id = :transaction_type_id', { transaction_type_id: TransactionTypeEnum.DEPOSIT });
 
         const {total_balance} = await query.getRawOne();
