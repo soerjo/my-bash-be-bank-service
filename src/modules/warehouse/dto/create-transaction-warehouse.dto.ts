@@ -1,4 +1,5 @@
 export class DetailDepositItemDto {
+    transaction_bank_id: string;
     store_id: number;
     amount: number;
 }
@@ -12,7 +13,6 @@ export class DepositItemDto {
 }
 
 export class DepositItemBulkDto {
-    transaction_bank_id: string;
     message: string;
     trx_id?: string;
     transactions: DetailDepositItemDto[];

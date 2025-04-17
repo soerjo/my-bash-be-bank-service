@@ -92,6 +92,7 @@ export class WarehouseService {
   }
 
   async createTransactionWarehouse(dto: DepositItemBulkDto, token: string) {
+    console.dir({dto}, {depth: null});
     try {
       const response$ = this.httpService.post<IResponse<IResponseCreateWarehouse>>(
         this.configService.get<string>('WAREHOUSE_SERVICE_URL') + '/transaction-store/deposit/bulk',

@@ -93,8 +93,8 @@ export class CustomerRepository extends Repository<CustomerEntity> {
     
         const processedData = rawData.map(data => ({
           ...data, 
-          full_name: staticDecrypt(data.full_name),
-          name: staticDecrypt(data.name),
+          // full_name: staticDecrypt(data.full_name),
+          // name: staticDecrypt(data.name),
           identity_number: staticDecrypt(data.identity_number),
           province: decrypt(data.province),
           regency: decrypt(data.regency),

@@ -41,6 +41,8 @@ export class TransactionRepository extends Repository<TransactionEntity> {
       "transaction.bank_id as bank_id",
       "transaction.customer_account_number as customer_account_number",
       "transaction.amount as amount",
+      "transaction.system_fee_amount as fee_amount",
+      "transaction.final_amount as final_amount",
       "transaction.message as message",
       "transaction.transaction_type_id as transaction_type_id",
       "transaction_type.name as transaction_type_name",
@@ -99,6 +101,8 @@ export class TransactionRepository extends Repository<TransactionEntity> {
     const processedData = rawData.map(data => ({
       ...data, 
       amount: new Decimal(data.amount).toNumber(),
+      fee_amount: new Decimal(data.fee_amount).toNumber(),
+      final_amount: new Decimal(data.final_amount).toNumber(),
     }))
     
     return { data: processedData, meta}

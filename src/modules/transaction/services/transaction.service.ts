@@ -38,14 +38,15 @@ export class TransactionService {
 
     const system_fee_percent = 0; // it should be fetch systems service;
     const system_fee_amount = new Decimal(system_fee_percent).mul(createTransactionDto.amount).div(100);
-    const amount = new Decimal(createTransactionDto.amount).minus(system_fee_amount);
+    const final_amount = new Decimal(createTransactionDto.amount).minus(system_fee_amount);
 
     const createTransaction = repository.create({
       ...createTransactionDto,
       customer_id: customer.id,
+      amount: createTransactionDto.amount,
       system_fee_percent: system_fee_percent,
       system_fee_amount: system_fee_amount,
-      amount: amount,
+      final_amount: final_amount,
       transaction_status_id: TransactionStatusEnum.PENDING,
       bank_id: createTransactionDto.bank_id,
     });
@@ -95,19 +96,21 @@ export class TransactionService {
   
       await this.transactionRepository.update(transaction.id, {
         transaction_status_id: TransactionStatusEnum.SUCCESS,
-        last_transaction_log_id: lastLogTransaction.id,
+        last_transaction_log_id: lastLogTransaction?.id,
         updated_by: userPayload.id,
       });
-  
+    
       const newTransactionLog = this.transactionLogRepository.create({
         customer_id: transaction.customer_id,
         customer_account_number: transaction.customer_account_number,
         amount: transaction.amount,
-        last_balance: lastLogTransaction.present_balance,
-        present_balance: lastLogTransaction.present_balance.plus(transaction.amount),
+        fee_amount: transaction.system_fee_amount,
+        final_amount: transaction.final_amount,
+        last_balance: lastLogTransaction?.present_balance,
+        present_balance: lastLogTransaction?.present_balance.plus(transaction.amount),
         transaction_type_id: transaction.transaction_type_id,
         last_transaction_id: transaction.last_transaction_id,
-        last_transaction_log_id: lastLogTransaction.id,
+        last_transaction_log_id: lastLogTransaction?.id,
         transaction_id: transaction.id,
         bank_id: transaction.bank_id,
         created_by: userPayload.id,
@@ -123,6 +126,89 @@ export class TransactionService {
     // );
     
     return await this.transactionLogRepository.save(newTransactionLogs);
+  }
+
+  
+  @Transactional()
+  async completedBulkTransactionDetail(transactionDetailIds: string[], userPayload?: IJwtPayload) {
+    const transactionDetailList = await this.transactionDetailRepository.findBy({id: In(transactionDetailIds)})
+    if(!transactionDetailList.length) return;
+
+    transactionDetailList.forEach((transaction) => {
+      transaction.transaction_status_id = TransactionStatusEnum.SUCCESS;
+      transaction.updated_by = userPayload.id;
+    })
+
+    await this.transactionDetailRepository.save(transactionDetailList);
+
+    let transactionIds = transactionDetailList.map((transaction) => transaction.transaction_id);
+    transactionIds = [...new Set(transactionIds)];
+    for (const transactionId of transactionIds) {
+      await this.completedTransactionFromDetail(transactionId, userPayload);
+    }
+  }
+
+  @Transactional()
+  async cancelBulkTransactionDetail(transactionDetailIds: string[], userPayload?: IJwtPayload) {
+    const transactionDetailList = await this.transactionDetailRepository.findBy({id: In(transactionDetailIds)})
+    if(!transactionDetailList.length) return;
+
+    transactionDetailList.forEach((transaction) => {
+      transaction.transaction_status_id = TransactionStatusEnum.FAILED;
+      transaction.updated_by = userPayload.id;
+    })
+
+    await this.transactionDetailRepository.save(transactionDetailList);
+
+    const transactionIds = transactionDetailList.map((transaction) => transaction.transaction_id);
+    await this.transactionRepository.update(transactionIds, {
+      transaction_status_id: TransactionStatusEnum.FAILED,
+      updated_by: userPayload.id,
+    });
+  }
+
+  async completedTransactionFromDetail(transactionId: string, userPayload: IJwtPayload){
+    const transaction = await this.transactionRepository.findOne({ where: { id: transactionId  }})
+    if(!transaction) throw new BadRequestException('transaction not found!');
+
+    const transacionDetail = await this.transactionDetailRepository.find({ where: { transaction_id: transactionId }})
+    const isAllComplete = transacionDetail.every((transaction) => transaction.transaction_status_id === TransactionStatusEnum.SUCCESS);
+    if(!isAllComplete) return;
+
+    console.log({transaction}, {depth: null});
+    console.log({last_transaction_log_id: transaction.last_transaction_log_id})
+    const lastLogTransaction = await this.transactionLogRepository.findOne({ where: {
+      // id: transaction.last_transaction_log_id
+      customer_id: transaction.customer_id,
+    }, order: {
+      created_at: 'DESC'
+    }});
+
+    await this.transactionRepository.update(transaction.id, {
+      transaction_status_id: TransactionStatusEnum.SUCCESS,
+      last_transaction_log_id: lastLogTransaction?.id,
+      updated_by: userPayload.id,
+    });
+  
+    const newTransactionLog = this.transactionLogRepository.create({
+      customer_id: transaction.customer_id,
+      customer_account_number: transaction.customer_account_number,
+      amount: transaction.amount,
+      fee_amount: transaction.system_fee_amount,
+      final_amount: transaction.final_amount,
+      last_balance: lastLogTransaction?.present_balance,
+      present_balance: lastLogTransaction?.present_balance.plus(transaction.amount),
+      transaction_type_id: transaction.transaction_type_id,
+      last_transaction_id: transaction.last_transaction_id,
+      last_transaction_log_id: lastLogTransaction?.id,
+      transaction_id: transaction.id,
+      bank_id: transaction.bank_id,
+      created_by: userPayload.id,
+    });
+
+    console.log({newTransactionLog}, {depth: null});
+
+    await this.transactionLogRepository.save(newTransactionLog);
   }
 
   @Transactional()
@@ -247,22 +333,19 @@ export class TransactionService {
 
     // const transaction = await this.transactionRepository.save(createtransaction);
 
-    const createNewDetailTransaction = transactionDetailList.map((detail) =>
+    const createNewDetailTransaction = await this.transactionDetailRepository.save(transactionDetailList.map((detail) =>
       this.transactionDetailRepository.create({
         ...detail,
         transaction_id: transaction.id,
       })
-    )
-
-    // bulk create transaction detail
-    await this.transactionDetailRepository.save(createNewDetailTransaction);
+    ));
 
     // do sync to warehouse-service
     await this.warehouseService.createTransactionWarehouse({
       message: dto.message,
       trx_id: transaction.id,
-      transaction_bank_id: transaction.id,
-      transactions: transactionDetailList.map((detail) => ({
+      transactions: createNewDetailTransaction.map((detail) => ({
+        transaction_bank_id: detail.id,
         store_id: detail.store_id,
         amount: detail.amount.toNumber(),
       })),

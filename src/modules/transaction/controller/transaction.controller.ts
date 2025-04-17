@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Query, Patch } from '@nestjs/common';
 import { TransactionService } from '../services/transaction.service';
 import { CreateTransactionDto } from '../dto/create-transaction.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -30,7 +30,7 @@ export class TransactionController {
     return this.transactionService.getLastTransaction(dto);
   }
 
-  @Post('complete')
+  @Patch('complete')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
@@ -38,12 +38,28 @@ export class TransactionController {
     return this.transactionService.completedBulkTransaction(dto.transaction_id, userPayload);
   }
 
-  @Post('cancel')
+  @Patch('cancel')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
   cancelTransaction(@Body() dto: UpdateTransactionStatusDto, @CurrentUser() userPayload: IJwtPayload) {
     return this.transactionService.cancleBulkTransaction(dto.transaction_id, userPayload);
+  }
+
+  @Patch('detail/complete')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
+  completeTransactionDetail(@Body() dto: UpdateTransactionStatusDto, @CurrentUser() userPayload: IJwtPayload) {
+    return this.transactionService.completedBulkTransactionDetail(dto.transaction_id, userPayload);
+  }
+
+  @Patch('detail/cancel')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
+  cancelTransactionDetail(@Body() dto: UpdateTransactionStatusDto, @CurrentUser() userPayload: IJwtPayload) {
+    return this.transactionService.cancelBulkTransactionDetail(dto.transaction_id, userPayload);
   }
 
   @Post('deposit/thing')
