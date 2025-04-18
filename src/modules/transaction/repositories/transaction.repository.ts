@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common";
 import { DataSource, EntityManager, Repository } from "typeorm";
-import { IJwtPayload } from "../../../common/interface/jwt-payload.interface";
 import { TransactionEntity } from "../entities/transaction.entity";
 import { FindTransactionDto } from "../dto/find-transaction.dto";
 import Decimal from "decimal.js";
@@ -76,8 +75,8 @@ export class TransactionRepository extends Repository<TransactionEntity> {
       queryBuilder.andWhere('transaction.created_at <= :end_date', { end_date: endDate });
     }
 
-    if(dto.transaction_types) {
-      queryBuilder.andWhere('transaction.transaction_type_id IN (:...transaction_types)', { transaction_types: dto.transaction_types });
+    if(dto.transaction_type_ids) {
+      queryBuilder.andWhere('transaction.transaction_type_id IN (:...transaction_type_ids)', { transaction_type_ids: dto.transaction_type_ids });
     }
 
     if(dto.transaction_status) {
@@ -106,6 +105,16 @@ export class TransactionRepository extends Repository<TransactionEntity> {
     }))
     
     return { data: processedData, meta}
+  }
+
+  async getTransactionByCustomer() {
+    const queryBuilderTransaction = this.createQueryBuilder('transaction_store');
+    // queryBuilderTransaction.leftJoin(StoreEntity, 'story', 'transaction_store.store_id = story.id');
+    queryBuilderTransaction.select([
+      "transaction_store.id as id",
+      "SUM(transaction_store.amount) as total_amount"
+    ])
+    .groupBy('transaction_store.customer_id');
   }
 
 

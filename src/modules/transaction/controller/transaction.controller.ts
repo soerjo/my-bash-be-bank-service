@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Query, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Query, Patch, UsePipes, ValidationPipe } from '@nestjs/common';
 import { TransactionService } from '../services/transaction.service';
 import { CreateTransactionDto } from '../dto/create-transaction.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -7,13 +7,14 @@ import { RolesGuard } from '../../../common/guard/role.guard';
 import { GetLastTransactionDto } from '../dto/getLastTransaction.dto';
 import { CurrentUser } from '../../../common/decorator/jwt-payload.decorator';
 import { IJwtPayload } from '../../../common/interface/jwt-payload.interface';
-import { FindTransactionDto } from '../dto/find-transaction.dto';
+import { FindTransactionDto, GetTransactionDto } from '../dto/find-transaction.dto';
 import { Roles } from '../../../common/decorator/role.decorator';
 import { RoleEnum } from '../../../common/constant/role.constant';
 import { CreateTransactionCashDto } from '../dto/create-transaction-cash.dto';
 import { WithdrawCashDto } from '../dto/create-withdraw-cash.dto';
 import { GetBalanceDto } from '../dto/get-balance.dto';
 import { UpdateTransactionStatusDto } from '../dto/complete-transaction.dto';
+import { GetTransactionLogDto } from '../dto/find-transaction-log.dto';
 
 @ApiTags('Transaction')
 @Controller('transaction')
@@ -91,15 +92,33 @@ export class TransactionController {
   @ApiBearerAuth()
   @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
   findAll(@CurrentUser() userPayload: IJwtPayload, @Query() dto: FindTransactionDto) {
-    return this.transactionService.findAll({...dto, bank_id: userPayload.bank_id});
+    return this.transactionService.findAll({...dto, bank_id: userPayload.bank_id ?? dto.bank_id});
+  }
+
+  @Get('best-customers')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
+  getBestCustomers(@CurrentUser() userPayload: IJwtPayload, @Query() dto: FindTransactionDto) {
+    return this.transactionService.getBestCustomer({...dto, bank_id: userPayload.bank_id ?? dto.bank_id});
   }
 
   @Get('total-balance')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
-  getbalance(@CurrentUser() userPayload: IJwtPayload) {
-    return this.transactionService.getTotalBalance(userPayload);
+  @UsePipes(new ValidationPipe({ transform: true }))
+  getbalance(@CurrentUser() userPayload: IJwtPayload, @Query() dto: GetTransactionLogDto) {
+    return this.transactionService.getTotalBalance({...dto, bank_id: userPayload.bank_id ?? dto.bank_id});
+  }
+
+  @Get('total-bank-balance')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
+  @UsePipes(new ValidationPipe({ transform: true }))
+  getbalanceBank(@CurrentUser() userPayload: IJwtPayload, @Query() dto: GetTransactionLogDto) {
+    return this.transactionService.getTotalBalanceBank({...dto, bank_id: userPayload.bank_id ?? dto.bank_id});
   }
 
   @Get('total-transaction')

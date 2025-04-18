@@ -18,6 +18,7 @@ import Decimal from 'decimal.js';
 import { TransactionTypeEnum } from '../../../common/constant/transaction-type.constant';
 import { TransactionDetailEntity } from '../entities/transaction-detail.entity';
 import { GetBalanceDto } from '../dto/get-balance.dto';
+import { subDays } from 'date-fns';
 
 @Injectable()
 export class TransactionService {
@@ -103,6 +104,7 @@ export class TransactionService {
       const newTransactionLog = this.transactionLogRepository.create({
         customer_id: transaction.customer_id,
         customer_account_number: transaction.customer_account_number,
+        // value: transaction.amount,
         amount: transaction.amount,
         fee_amount: transaction.system_fee_amount,
         final_amount: transaction.final_amount,
@@ -175,10 +177,7 @@ export class TransactionService {
     const isAllComplete = transacionDetail.every((transaction) => transaction.transaction_status_id === TransactionStatusEnum.SUCCESS);
     if(!isAllComplete) return;
 
-    console.log({transaction}, {depth: null});
-    console.log({last_transaction_log_id: transaction.last_transaction_log_id})
     const lastLogTransaction = await this.transactionLogRepository.findOne({ where: {
-      // id: transaction.last_transaction_log_id
       customer_id: transaction.customer_id,
     }, order: {
       created_at: 'DESC'
@@ -205,8 +204,6 @@ export class TransactionService {
       bank_id: transaction.bank_id,
       created_by: userPayload.id,
     });
-
-    console.log({newTransactionLog}, {depth: null});
 
     await this.transactionLogRepository.save(newTransactionLog);
   }
@@ -254,6 +251,9 @@ export class TransactionService {
   }
 
   async findAll(dto: FindTransactionDto) {
+    dto.start_date = dto.start_date ?? subDays(new Date(), 7);
+    dto.end_date = dto.end_date ?? new Date();
+
     const {data, meta} = await this.transactionRepository.findAll(dto);
     const transactionIds = data.map((transaction) => transaction.id);
     const transactionDetails = await this.transactionDetailRepository.findBy({transaction_id: In(transactionIds)});
@@ -272,8 +272,33 @@ export class TransactionService {
     };
   }
 
-  getTotalBalance(userPayload: IJwtPayload) {
-    return this.transactionLogRepository.getTotalBalance(userPayload.bank_id)
+  async getBestCustomer(dto: FindTransactionDto) {
+    dto.start_date = dto.start_date ?? subDays(new Date(), 7);
+    dto.end_date = dto.end_date ?? new Date();
+    const { data: transaction } = await this.transactionLogRepository.getBestTransactionCustomer(dto);
+    const customer = await this.customerService.getByIds(transaction.map((transaction) => transaction.customer_id));
+    
+    // return transaction
+    return transaction.map(data => {
+      const customerTransaction = customer.find((customer) => customer.id === data.customer_id);
+
+      return {
+        id: data.customer_id,
+        full_name: customerTransaction.full_name,
+        name: customerTransaction.name,
+        amount: data?.total_balance,
+      }
+    })
+  }
+
+  getTotalBalance(dto: FindTransactionDto) {
+    dto.start_date = dto.start_date ?? subDays(new Date(), 7);
+    dto.end_date = dto.end_date ?? new Date();
+    return this.transactionLogRepository.getTotalBalance(dto)
+  }
+
+  getTotalBalanceBank(dto: FindTransactionDto) {
+    return this.transactionLogRepository.getTotalBalanceBank(dto)
   }
 
   getTotalTransaction(userPayload: IJwtPayload) {
@@ -296,7 +321,7 @@ export class TransactionService {
     for (const detail_transaction of dto.detail_transaction) {
       const store = storeList.find((store) => store.id === detail_transaction.store_id);
       if(!store) throw new BadRequestException(`store id:${detail_transaction.store_id} not found!`);
-      const storeTotalPrice = new Decimal(detail_transaction.amount).mul(store.price)
+      let storeTotalPrice = new Decimal(detail_transaction.amount).mul(store.price)
       amount = storeTotalPrice.plus(amount);
 
       transactionDetailList.push(

@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateCustomerDto } from '../dto/create-customer.dto';
 import { IJwtPayload } from '../../../common/interface/jwt-payload.interface';
 import { CustomerRepository } from '../repositories/customer.repository';
-import { EntityManager } from 'typeorm';
+import { EntityManager, In } from 'typeorm';
 import { FindCustomerDto } from '../dto/find-customer.dto';
 import { generateUniqueNumber } from '../../../utils/unique-number-generator.util';
 import { CustomerEntity } from '../entities/customer.entity';
@@ -132,6 +132,10 @@ export class CustomerService {
   findOneById(id: number, manager?: EntityManager) {
     const repository = manager ? manager.getRepository(CustomerEntity) : this.customerRepository;
     return repository.findOne({ where: { id } });
+  }
+
+  getByIds(ids: number[]) {
+    return this.customerRepository.find({ where: { id: In(ids) } });
   }
 
   // @Transactional()
