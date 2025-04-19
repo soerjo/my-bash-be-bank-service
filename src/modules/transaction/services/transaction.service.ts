@@ -164,11 +164,11 @@ export class TransactionService {
 
     await this.transactionDetailRepository.save(transactionDetailList);
 
-    const transactionIds = transactionDetailList.map((transaction) => transaction.transaction_id);
-    await this.transactionRepository.update(transactionIds, {
-      transaction_status_id: TransactionStatusEnum.FAILED,
-      updated_by: userPayload.id,
-    });
+    let transactionIds = transactionDetailList.map((transaction) => transaction.transaction_id);
+    transactionIds = [...new Set(transactionIds)];
+    for (const transactionId of transactionIds) {
+      await this.cancelTransactionFromDetail(transactionId, userPayload);
+    }
   }
 
   async completedTransactionFromDetail(transactionId: string, userPayload: IJwtPayload){
@@ -209,6 +209,21 @@ export class TransactionService {
 
     await this.transactionLogRepository.save(newTransactionLog);
   }
+
+  async cancelTransactionFromDetail(transactionId: string, userPayload: IJwtPayload){
+    const transaction = await this.transactionRepository.findOne({ where: { id: transactionId  }})
+    if(!transaction) throw new BadRequestException('transaction not found!');
+
+    const transacionDetail = await this.transactionDetailRepository.find({ where: { transaction_id: transactionId }})
+    const isAllComplete = transacionDetail.every((transaction) => transaction.transaction_status_id === TransactionStatusEnum.FAILED);
+    if(!isAllComplete) return;
+
+    await this.transactionRepository.update(transaction.id, {
+      transaction_status_id: TransactionStatusEnum.FAILED,
+      updated_by: userPayload.id,
+    });
+  }
+
 
   @Transactional()
   async cancleBulkTransaction(transactionIds: string[], userPayload?: IJwtPayload){
