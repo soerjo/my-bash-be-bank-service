@@ -6,6 +6,7 @@ import Decimal from "decimal.js";
 import { FindTransactionLogDto } from "../dto/find-transaction-log.dto";
 import { TransactionTypeEnum } from "../../../common/constant/transaction-type.constant";
 import { GetTopCustomerPageDto } from "../dto/get-top-customer.dto";
+import { GetBankBalanceDto } from "../dto/get-bank-balance.dto";
 
 @Injectable()
 export class TransactionLogRepository extends Repository<TransactionLogEntity> {
@@ -81,7 +82,7 @@ export class TransactionLogRepository extends Repository<TransactionLogEntity> {
       }
     }
 
-    async getTotalBalanceBank(dto: FindTransactionLogDto): Promise<any> {
+    async getTotalBalanceBank(dto: GetBankBalanceDto): Promise<any> {
       const queryBuilder = this.dataSource.createQueryBuilder()
       queryBuilder.select('SUM(sub.present_balance)', 'total_latest_amount');
       queryBuilder.from(subQuery => {

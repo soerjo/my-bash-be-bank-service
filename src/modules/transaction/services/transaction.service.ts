@@ -20,6 +20,7 @@ import { TransactionDetailEntity } from '../entities/transaction-detail.entity';
 import { GetBalanceDto } from '../dto/get-balance.dto';
 import { subDays } from 'date-fns';
 import { GetTopCustomerPageDto } from '../dto/get-top-customer.dto';
+import { GetBankBalanceDto } from '../dto/get-bank-balance.dto';
 
 @Injectable()
 export class TransactionService {
@@ -300,7 +301,7 @@ export class TransactionService {
     return this.transactionLogRepository.getTotalBalance(dto)
   }
 
-  getTotalBalanceBank(dto: FindTransactionDto) {
+  getTotalBalanceBank(dto: GetBankBalanceDto) {
     return this.transactionLogRepository.getTotalBalanceBank(dto)
   }
 

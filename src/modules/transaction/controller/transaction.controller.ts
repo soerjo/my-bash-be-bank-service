@@ -15,6 +15,7 @@ import { GetBalanceDto } from '../dto/get-balance.dto';
 import { UpdateTransactionStatusDto } from '../dto/complete-transaction.dto';
 import { GetTransactionLogDto } from '../dto/find-transaction-log.dto';
 import { GetTopCustomerPageDto } from '../dto/get-top-customer.dto';
+import { GetBankBalanceDto } from '../dto/get-bank-balance.dto';
 
 @ApiTags('Transaction')
 @Controller('transaction')
@@ -117,7 +118,7 @@ export class TransactionController {
   @ApiBearerAuth()
   @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
   @UsePipes(new ValidationPipe({ transform: true }))
-  getbalanceBank(@CurrentUser() userPayload: IJwtPayload, @Query() dto: GetTransactionLogDto) {
+  getbalanceBank(@CurrentUser() userPayload: IJwtPayload, @Query() dto: GetBankBalanceDto) {
     return this.transactionService.getTotalBalanceBank({...dto, bank_id: userPayload.bank_id ?? dto.bank_id});
   }
 
