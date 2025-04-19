@@ -8,6 +8,7 @@ import { generateUniqueNumber } from '../../../utils/unique-number-generator.uti
 import { CustomerEntity } from '../entities/customer.entity';
 import { GetBalanceDto } from '../dto/get-balance.dto';
 import { encryptPassword, validatePassword } from '../../../utils/hashing.util';
+import { Transactional } from 'typeorm-transactional';
 
 @Injectable()
 export class CustomerService {
@@ -69,26 +70,24 @@ export class CustomerService {
   async findOne(id: number) {
     const customer = await this.customerRepository.findOne({ where: { id } });
     return {
-      id:customer.id,
-      created_at:customer.created_at,
-      user_id:customer.user_id,
-      bank_id:customer.bank_id,
-      private_account_number:customer.private_account_number,
-      public_account_number:customer.public_account_number,
-      password:customer.password,
-      temp_password:customer.temp_password,
-      full_name:customer.full_name,
-      name:customer.name,
-      identity_number:customer.identity_number,
-      photo_url:customer.photo_url,
-      province:customer.province,
-      regency:customer.regency,
-      district:customer.district,
-      village:customer.village,
-      address:customer.address,
-      postal_code:customer.postal_code,
-      phone:customer.phone,
-      email:customer.email,
+      id: customer.id,
+      created_at: customer.created_at,
+      user_id: customer.user_id,
+      bank_id: customer.bank_id,
+      private_account_number: customer.private_account_number,
+      public_account_number: customer.public_account_number,
+      full_name: customer.full_name,
+      name: customer.name,
+      identity_number: customer.identity_number,
+      photo_url: customer.photo_url,
+      province: customer.province,
+      regency: customer.regency,
+      district: customer.district,
+      village: customer.village,
+      address: customer.address,
+      postal_code: customer.postal_code,
+      phone: customer.phone,
+      email: customer.email,
     }
   }
   
@@ -138,7 +137,6 @@ export class CustomerService {
     return this.customerRepository.find({ where: { id: In(ids) } });
   }
 
-  // @Transactional()
   async update(dto: CustomerEntity, manager?: EntityManager) {
     const repository = manager ? manager.getRepository(CustomerEntity) : this.customerRepository;
 
@@ -146,6 +144,14 @@ export class CustomerService {
     if(!customer) throw new BadRequestException('Customer not found');
 
     return repository.save({...customer, ...dto});
+  }
+
+  @Transactional()
+  async updateCustomer(id: number, dto: Partial<CustomerEntity>) {
+    const customer = await this.customerRepository.findOne({ where:{ id } });
+    if(!customer) throw new BadRequestException('Customer not found');
+
+    return this.customerRepository.save({...customer, ...dto});
   }
 
   remove(id: number) {
