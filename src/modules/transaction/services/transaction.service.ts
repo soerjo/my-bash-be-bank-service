@@ -19,6 +19,7 @@ import { TransactionTypeEnum } from '../../../common/constant/transaction-type.c
 import { TransactionDetailEntity } from '../entities/transaction-detail.entity';
 import { GetBalanceDto } from '../dto/get-balance.dto';
 import { subDays } from 'date-fns';
+import { GetTopCustomerPageDto } from '../dto/get-top-customer.dto';
 
 @Injectable()
 export class TransactionService {
@@ -272,14 +273,14 @@ export class TransactionService {
     };
   }
 
-  async getBestCustomer(dto: FindTransactionDto) {
+  async getBestCustomer(dto: GetTopCustomerPageDto) {
     dto.start_date = dto.start_date ?? subDays(new Date(), 7);
     dto.end_date = dto.end_date ?? new Date();
-    const { data: transaction } = await this.transactionLogRepository.getBestTransactionCustomer(dto);
+    const { data: transaction, meta } = await this.transactionLogRepository.getBestTransactionCustomer(dto);
     const customer = await this.customerService.getByIds(transaction.map((transaction) => transaction.customer_id));
     
     // return transaction
-    return transaction.map(data => {
+    const mappingdata =  transaction.map(data => {
       const customerTransaction = customer.find((customer) => customer.id === data.customer_id);
 
       return {
@@ -289,6 +290,8 @@ export class TransactionService {
         amount: data?.total_balance,
       }
     })
+
+    return { data: mappingdata, meta }
   }
 
   getTotalBalance(dto: FindTransactionDto) {

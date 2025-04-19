@@ -5,6 +5,7 @@ import { CreateTransactionLogDto } from "../dto/create-transactino-log.dto";
 import Decimal from "decimal.js";
 import { FindTransactionLogDto } from "../dto/find-transaction-log.dto";
 import { TransactionTypeEnum } from "../../../common/constant/transaction-type.constant";
+import { GetTopCustomerPageDto } from "../dto/get-top-customer.dto";
 
 @Injectable()
 export class TransactionLogRepository extends Repository<TransactionLogEntity> {
@@ -101,7 +102,7 @@ export class TransactionLogRepository extends Repository<TransactionLogEntity> {
       }
     }
 
-    async getBestTransactionCustomer(dto: FindTransactionLogDto){
+    async getBestTransactionCustomer(dto: GetTopCustomerPageDto){
       const queryBuilder = this.createQueryBuilder('transaction_log');
       queryBuilder.select('SUM(transaction_log.amount)', 'total_balance');
       queryBuilder.addSelect('transaction_log.customer_id', 'customer_id');
@@ -120,23 +121,22 @@ export class TransactionLogRepository extends Repository<TransactionLogEntity> {
         queryBuilder.andWhere('transaction_log.created_at <= :end_date', { end_date: endDate });
       }
   
-      dto.transaction_type_id = dto.transaction_type_id ?? TransactionTypeEnum.DEPOSIT;
-      queryBuilder.andWhere('transaction_log.transaction_type_id = :transaction_type_id', { transaction_type_id: dto.transaction_type_id });
+      queryBuilder.andWhere('transaction_log.transaction_type_id = :transaction_type_id', { transaction_type_id: TransactionTypeEnum.DEPOSIT });
   
       queryBuilder.groupBy('transaction_log.customer_id')
       queryBuilder.orderBy('total_balance', 'DESC')
       queryBuilder.offset((dto.page - 1) * dto.take).limit(dto.take)
     
-      // const queryItemCount = queryBuilder.getCount()
+      const queryItemCount = queryBuilder.getCount()
       const queryUser = queryBuilder.getRawMany()
-      const [rawData] = await Promise.all([queryUser])
+      const [rawData, itemCount] = await Promise.all([queryUser, queryItemCount])
   
-      // const meta = {
-      //   page: dto?.page,
-      //   offset: dto?.take,
-      //   itemCount,
-      //   pageCount: Math.ceil(itemCount / dto?.take) ? Math.ceil(itemCount / dto?.take) : 0,
-      // };
+      const meta = {
+        page: dto?.page,
+        offset: dto?.take,
+        itemCount,
+        pageCount: Math.ceil(itemCount / dto?.take) ? Math.ceil(itemCount / dto?.take) : 0,
+      };
   
       const processedData = rawData.map(data => ({
         ...data, 
@@ -145,6 +145,6 @@ export class TransactionLogRepository extends Repository<TransactionLogEntity> {
         // final_amount: new Decimal(data.final_amount).toNumber(),
       }))
       
-      return { data: processedData}
+      return { data: processedData, meta}
     }
 }

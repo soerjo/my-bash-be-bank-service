@@ -7,14 +7,14 @@ import { RolesGuard } from '../../../common/guard/role.guard';
 import { GetLastTransactionDto } from '../dto/getLastTransaction.dto';
 import { CurrentUser } from '../../../common/decorator/jwt-payload.decorator';
 import { IJwtPayload } from '../../../common/interface/jwt-payload.interface';
-import { FindTransactionDto, GetTransactionDto } from '../dto/find-transaction.dto';
+import { FindTransactionDto } from '../dto/find-transaction.dto';
 import { Roles } from '../../../common/decorator/role.decorator';
 import { RoleEnum } from '../../../common/constant/role.constant';
-import { CreateTransactionCashDto } from '../dto/create-transaction-cash.dto';
 import { WithdrawCashDto } from '../dto/create-withdraw-cash.dto';
 import { GetBalanceDto } from '../dto/get-balance.dto';
 import { UpdateTransactionStatusDto } from '../dto/complete-transaction.dto';
 import { GetTransactionLogDto } from '../dto/find-transaction-log.dto';
+import { GetTopCustomerPageDto } from '../dto/get-top-customer.dto';
 
 @ApiTags('Transaction')
 @Controller('transaction')
@@ -99,7 +99,7 @@ export class TransactionController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
-  getBestCustomers(@CurrentUser() userPayload: IJwtPayload, @Query() dto: FindTransactionDto) {
+  getBestCustomers(@CurrentUser() userPayload: IJwtPayload, @Query() dto: GetTopCustomerPageDto) {
     return this.transactionService.getBestCustomer({...dto, bank_id: userPayload.bank_id ?? dto.bank_id});
   }
 
