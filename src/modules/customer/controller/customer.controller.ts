@@ -68,8 +68,8 @@ export class CustomerController {
 
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCustomerDto: UpdateCustomerDto) {
-    return this.customerService.updateCustomer(+id, updateCustomerDto);
+  async update(@Param('id') id: string, @Body() updateCustomerDto: UpdateCustomerDto) {
+    await this.customerService.updateCustomer(+id, updateCustomerDto);
   }
 
   // @UseGuards(JwtAuthGuard, RolesGuard)
