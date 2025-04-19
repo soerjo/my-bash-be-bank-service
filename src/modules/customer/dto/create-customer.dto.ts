@@ -2,11 +2,9 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsNotEmpty, IsNumber, IsNumberString, IsOptional, IsString } from "class-validator";
 
 export class CreateCustomerDto {
-    
-    last_transaction_id?: string;
-
-    balance?: number;
-
+    @IsOptional()
+    @IsString()
+    @ApiPropertyOptional()
     password: string;
     
     @IsOptional()
@@ -24,19 +22,21 @@ export class CreateCustomerDto {
     @ApiPropertyOptional()
     public_account_number?: string;
 
-    @IsOptional()
     @IsString()
     @ApiProperty()
     full_name?: string;
 
-    @IsOptional()
     @IsString()
     @ApiProperty()
     name?: string;
 
+    @IsString()
+    @ApiProperty()
+    email?: string;
+
     @IsOptional()
     @IsNumberString()
-    @ApiProperty()
+    @ApiPropertyOptional()
     identity_number?: string;
 
     @IsString()
@@ -46,37 +46,37 @@ export class CreateCustomerDto {
 
     @IsOptional()
     @IsString()
-    @ApiProperty()
+    @ApiPropertyOptional()
     province?: string;
 
     @IsOptional()
     @IsString()
-    @ApiProperty()
+    @ApiPropertyOptional()
     regency?: string;
 
     @IsOptional()
     @IsString()
-    @ApiProperty()
+    @ApiPropertyOptional()
     district?: string;
 
     @IsOptional()
     @IsString()
-    @ApiProperty()
+    @ApiPropertyOptional()
     village?: string;
 
     @IsOptional()
     @IsString()
-    @ApiProperty()
+    @ApiPropertyOptional()
     address?: string;
 
     @IsOptional()
     @IsNumberString()
-    @ApiProperty()
+    @ApiPropertyOptional()
     postal_code?: string;
 
     @IsOptional()
     @IsNumberString()
-    @ApiProperty()
+    @ApiPropertyOptional()
     phone?: string;
 
     created_by?: number;

@@ -14,6 +14,7 @@ import { Transactional } from 'typeorm-transactional';
 export class CustomerService {
   constructor(private readonly customerRepository: CustomerRepository) {}
 
+  @Transactional()
   async create(createCustomerDto: CreateCustomerDto, manager?: EntityManager): Promise<CustomerEntity> {
     const repository = manager ? manager.getRepository(CustomerEntity) : this.customerRepository;
     
@@ -24,15 +25,25 @@ export class CustomerService {
     if (customer) throw new BadRequestException('public_account_number or private_account_number already exist');
 
     const [lastCustomer] = await repository.find({ order: { id: 'DESC' }, take: 1 });
+
+    const private_account_number = createCustomerDto.private_account_number ?? generateUniqueNumber(lastCustomer?.id ?? 0, "PRV");
+    const public_account_number = createCustomerDto.public_account_number ?? generateUniqueNumber(lastCustomer?.id ?? 0, "PUB");
+
     const newCustomer = repository.create({
       ...createCustomerDto,
-      private_account_number: createCustomerDto.private_account_number ?? generateUniqueNumber(lastCustomer?.id ?? 0, "PRV"),
-      public_account_number: createCustomerDto.public_account_number ?? generateUniqueNumber(lastCustomer?.id ?? 0, "PUB"),
+      private_account_number: private_account_number,
+      public_account_number: public_account_number,
       created_by: createCustomerDto.created_by,
-      password: encryptPassword(createCustomerDto.password),
+      password: encryptPassword(createCustomerDto.password ?? public_account_number.slice(0,6)),
       bank_id: createCustomerDto?.bank_id,
     })
-    return repository.save(newCustomer);
+
+    await repository.save(newCustomer);
+
+    delete newCustomer.password;
+    delete newCustomer.temp_password;
+
+    return newCustomer;
   }
 
   async resetPassword(id: number, userPayload: IJwtPayload) {
@@ -40,23 +51,24 @@ export class CustomerService {
     if(!customer) throw new BadRequestException('Customer not found');
 
     const tempPassword = generateUniqueNumber(customer.id, "PWD");
-    customer.temp_password = tempPassword;
+    customer.temp_password = encryptPassword(tempPassword.slice(0,6));
     customer.password = null;
     customer.updated_by = userPayload.id;
 
-    customer.save();
+    await customer.save();
 
     return {tempPassword}
   }
 
   async setNewPassword(dto: GetBalanceDto) {
-    const customer = await this.customerRepository.findOne({ where: { temp_password: dto.password } });
+    const customer = await this.customerRepository.findOne({ where: { private_account_number: dto.private_account_number } });
     if(!customer) throw new BadRequestException('Customer not found');
+    if(validatePassword(dto.password, customer.temp_password)) throw new BadRequestException('private number and password are not valid');
 
-    customer.password = dto.password;
+    customer.password = encryptPassword(dto.password);
     customer.temp_password = null;
 
-    customer.save();
+    await customer.save();
   }
 
   getTotalCustomer(userPayload: IJwtPayload){
