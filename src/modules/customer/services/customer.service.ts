@@ -9,7 +9,7 @@ import { CustomerEntity } from '../entities/customer.entity';
 import { GetBalanceDto } from '../dto/get-balance.dto';
 import { encryptPassword, validatePassword } from '../../../utils/hashing.util';
 import { Transactional } from 'typeorm-transactional';
-import { TransactionLogService } from 'src/modules/transaction/services/transaction-log.service';
+import { TransactionLogService } from '../../../modules/transaction/services/transaction-log.service';
 
 @Injectable()
 export class CustomerService {

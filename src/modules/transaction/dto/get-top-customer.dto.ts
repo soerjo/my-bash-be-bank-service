@@ -2,7 +2,7 @@ import { ApiPropertyOptional, IntersectionType } from '@nestjs/swagger';
 import { IsDate, IsNumber, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 import { IsRangeDate } from '../../../common/validation/isRangeDate.validation';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { PaginationDto } from '../../../common/dto/pagination.dto';
 
 export class GetTopCustomerDto {
   @ApiPropertyOptional()
