@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable } from '@nestjs/common';
 import { CreateTransactionDto, DefaultCreateTransactionDto } from '../dto/create-transaction.dto';
 import { EntityManager, In } from 'typeorm';
 import { FindTransactionDto } from '../dto/find-transaction.dto';
@@ -28,8 +28,10 @@ export class TransactionService {
     private readonly transactionRepository: TransactionRepository,
     private readonly transactionLogRepository: TransactionLogRepository,
     private readonly transactionDetailRepository: TransactionDetailRepository,
-    private readonly customerService: CustomerService,
     private readonly warehouseService: WarehouseService,
+    
+    @Inject(forwardRef(() => CustomerService))
+    private readonly customerService: CustomerService,
   ) {}
 
   // @Transactional()
@@ -190,6 +192,18 @@ export class TransactionService {
       last_transaction_log_id: lastLogTransaction?.id,
       updated_by: userPayload.id,
     });
+
+    const payload = lastLogTransaction.payload;
+    transacionDetail.map(detail => {
+      const amount= new Decimal(detail.amount).plus(payload?.[`${detail.store_id}`]?.amount ?? 0);
+
+      payload[`${detail.store_id}`] = {
+        last_transaction_detail_id: detail.id,
+        store_id: detail.store_id,
+        store_name: detail.store_name,
+        amount: amount,
+      }
+    })
   
     const newTransactionLog = this.transactionLogRepository.create({
       customer_id: transaction.customer_id,
@@ -205,6 +219,7 @@ export class TransactionService {
       transaction_id: transaction.id,
       bank_id: transaction.bank_id,
       created_by: userPayload.id,
+      payload: payload,
     });
 
     await this.transactionLogRepository.save(newTransactionLog);
@@ -346,6 +361,7 @@ export class TransactionService {
       transactionDetailList.push(
         this.transactionDetailRepository.create({
           store_id: store.id,
+          store_name: store.name,
           store_price: new Decimal(store.price),
           amount: new Decimal(detail_transaction.amount),
           final_price: storeTotalPrice,

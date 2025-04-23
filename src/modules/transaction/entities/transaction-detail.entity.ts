@@ -17,6 +17,9 @@ export class TransactionDetailEntity extends HistoryEntityAbstract {
   @Column()
   store_id: number;
 
+  @Column()
+  store_name: string;
+
   @Column({
       default: 0, 
       type: 'decimal',

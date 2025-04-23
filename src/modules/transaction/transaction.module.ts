@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TransactionService } from './services/transaction.service';
 import { TransactionController } from './controller/transaction.controller';
 import { TransactionRepository } from './repositories/transaction.repository';
@@ -14,7 +14,7 @@ import { WarehouseModule } from '../warehouse/warehouse.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([TransactionEntity]),
-    CustomerModule,
+    forwardRef(()=> CustomerModule),
     WarehouseModule,
   ],
   controllers: [

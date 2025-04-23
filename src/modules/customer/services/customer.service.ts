@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable } from '@nestjs/common';
 import { CreateCustomerDto } from '../dto/create-customer.dto';
 import { IJwtPayload } from '../../../common/interface/jwt-payload.interface';
 import { CustomerRepository } from '../repositories/customer.repository';
@@ -9,10 +9,17 @@ import { CustomerEntity } from '../entities/customer.entity';
 import { GetBalanceDto } from '../dto/get-balance.dto';
 import { encryptPassword, validatePassword } from '../../../utils/hashing.util';
 import { Transactional } from 'typeorm-transactional';
+import { TransactionLogService } from 'src/modules/transaction/services/transaction-log.service';
 
 @Injectable()
 export class CustomerService {
-  constructor(private readonly customerRepository: CustomerRepository) {}
+  constructor(
+    private readonly customerRepository: CustomerRepository,
+
+    @Inject(forwardRef(() => TransactionLogService))
+    private readonly transactionLogService: TransactionLogService,
+    
+  ) {}
 
   @Transactional()
   async create(createCustomerDto: CreateCustomerDto, manager?: EntityManager): Promise<CustomerEntity> {
@@ -81,6 +88,9 @@ export class CustomerService {
 
   async findOne(id: number) {
     const customer = await this.customerRepository.findOne({ where: { id } });
+    if(!customer) throw new BadRequestException('Customer not found');
+
+    const userBalance = await this.transactionLogService.getByUserId(id);
     return {
       id: customer.id,
       created_at: customer.created_at,
@@ -100,6 +110,8 @@ export class CustomerService {
       postal_code: customer.postal_code,
       phone: customer.phone,
       email: customer.email,
+      balance: userBalance.present_balance,
+      payload: userBalance.payload,
     }
   }
   

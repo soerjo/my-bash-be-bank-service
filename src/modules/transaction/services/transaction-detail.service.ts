@@ -7,7 +7,6 @@ import { TransactionDetailRepository } from '../repositories/transaction-detail.
 export class TransactionDetailService {
   constructor(
     private readonly transactionDetailRepository: TransactionDetailRepository,
-    private readonly customerService: CustomerService,
   ) {}
 
   async create(createDto: any) {

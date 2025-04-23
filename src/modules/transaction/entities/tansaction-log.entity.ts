@@ -5,6 +5,14 @@ import { TransactionEntity } from "./transaction.entity";
 import { BankEntity } from "../../../modules/bank/entities/bank.entity";
 import { CustomerEntity } from "../../../modules/customer/entities/customer.entity";
 
+export interface IDetailPayloadLog {
+  last_transaction_detail_id: string
+  store_id: number;
+  store_name: string;
+  amount: Decimal;
+}
+
+
 @Entity({ name: 'transaction-log', schema: 'bank' })
 export class TransactionLogEntity {
     @PrimaryGeneratedColumn("uuid")
@@ -113,6 +121,9 @@ export class TransactionLogEntity {
 
     @Column({ nullable: false, default: 0 })
     created_by: number;
+
+    @Column({ nullable: true, default: {}, type: 'jsonb' })
+    payload: Record<string, IDetailPayloadLog>;
     
     @CreateDateColumn()
     created_at: Date;
