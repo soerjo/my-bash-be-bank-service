@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Query, Patch, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Query, Patch, UsePipes, ValidationPipe, Req, Logger } from '@nestjs/common';
 import { TransactionService } from '../services/transaction.service';
 import { CreateTransactionDto } from '../dto/create-transaction.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -16,11 +16,25 @@ import { UpdateTransactionStatusDto } from '../dto/complete-transaction.dto';
 import { GetTransactionLogDto } from '../dto/find-transaction-log.dto';
 import { GetTopCustomerPageDto } from '../dto/get-top-customer.dto';
 import { GetBankBalanceDto } from '../dto/get-bank-balance.dto';
+import { Request } from 'express';
 
 @ApiTags('Transaction')
 @Controller('transaction')
 export class TransactionController {
+  private readonly logger = new Logger(TransactionController.name);
+
   constructor(private readonly transactionService: TransactionService) {}
+
+  @Get('test')
+  getIp(@Req() req: Request) {
+    this.logger.log('Request IP:', req.ip);
+    this.logger.log('Request URL:', req.originalUrl);
+    return {
+      ip: req.ip,
+      url: req.originalUrl,
+    }
+
+  }
 
   @Post('balance')
   getBalance(@Body() dto: GetBalanceDto) {
