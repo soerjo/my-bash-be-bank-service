@@ -21,10 +21,13 @@ import { GetBalanceDto } from '../dto/get-balance.dto';
 import { subDays } from 'date-fns';
 import { GetTopCustomerPageDto } from '../dto/get-top-customer.dto';
 import { GetBankBalanceDto } from '../dto/get-bank-balance.dto';
+import { ConfigService } from '@nestjs/config';
+import { SyncStorePrice } from '../dto/sync-store-price.dto';
 
 @Injectable()
 export class TransactionService {
   constructor(
+    private readonly configService: ConfigService,
     private readonly transactionRepository: TransactionRepository,
     private readonly transactionLogRepository: TransactionLogRepository,
     private readonly transactionDetailRepository: TransactionDetailRepository,
@@ -41,7 +44,7 @@ export class TransactionService {
     const customer = await this.customerService.findOneById(createTransactionDto.customer_id, manager);
     if (!customer) throw new BadRequestException('customer not found!');
 
-    const system_fee_percent = 0; // it should be fetch systems service;
+    const system_fee_percent = new Decimal(this.configService.get<string>("SYSTEM_FEE_PRECENT") ?? 0); // it should be fetch systems service;
     const system_fee_amount = new Decimal(system_fee_percent).mul(createTransactionDto.amount).div(100);
     const final_amount = new Decimal(createTransactionDto.amount).minus(system_fee_amount);
 
@@ -365,12 +368,12 @@ export class TransactionService {
           store_price: new Decimal(store.price),
           amount: new Decimal(detail_transaction.amount),
           final_price: storeTotalPrice,
-          category_id: store.category.id,
-          category_name: store.category.name,
-          category_code: store.category.code,
-          unit_id: store.category.unit.id,
-          unit_name: store.category.unit.name,
-          unit_code: store.category.unit.code,
+          category_id: store.category_id,
+          category_name: store.category_name,
+          category_code: store.category_code,
+          unit_id: store.unit_id,
+          unit_name: store.unit_name,
+          unit_code: store.unit_code,
           transaction_type_id: TransactionTypeEnum.DEPOSIT, // 1: deposit, 2: withdraw
           transaction_status_id: TransactionStatusEnum.PENDING, // 1: pending, 2: success, 3: failed
           bank_id: userPayload.bank_id,
@@ -459,6 +462,74 @@ export class TransactionService {
       balance: transaction.present_balance.toNumber(),
       // transaction,
     }
+  }
+
+  @Transactional()
+  async syncStorePrice(dto: SyncStorePrice, userPayload: IJwtPayload) {
+    // console.log('=====================> sync store price trx', {dto.transaction_bank_ids});
+    const transactionDetailList = await this.transactionDetailRepository.findBy({
+      ...(dto.transaction_bank_ids?.length ? { id: In(dto.transaction_bank_ids) } : {}),
+      // id: In(transactionBankIds),
+      transaction_status_id: TransactionStatusEnum.PENDING,
+    });
+    if(!transactionDetailList.length) throw new BadRequestException('transaction detail not found!');
+
+    // get price product
+    const storeIds = transactionDetailList.map((detail) => detail.store_id);
+    const storeList = await this.warehouseService.getStoreByIds(storeIds, userPayload.token);
+
+    for (const [index, detail_transaction] of transactionDetailList.entries()) {
+      const store = storeList.find((store) => store.id === detail_transaction.store_id);
+      if(!store) throw new BadRequestException(`store id:${detail_transaction.store_id} not found!`);
+
+      let storeTotalPrice = new Decimal(detail_transaction.amount).mul(store.price)
+
+      transactionDetailList[index].store_id = store.id;
+      transactionDetailList[index].store_name = store.name;
+      transactionDetailList[index].store_price = new Decimal(store.price);
+      transactionDetailList[index].amount = new Decimal(detail_transaction.amount);
+      transactionDetailList[index].final_price = storeTotalPrice;
+      transactionDetailList[index].category_id = store.category_id;
+      transactionDetailList[index].category_name = store.category_name;
+      transactionDetailList[index].category_code = store.category_code;
+      transactionDetailList[index].unit_id = store.unit_id;
+      transactionDetailList[index].unit_name = store.unit_name;
+      transactionDetailList[index].unit_code = store.unit_code;
+    }
+
+    await this.transactionDetailRepository.save(transactionDetailList);
+  }
+
+  @Transactional()
+  async syncTransaction(transactionIds: string[], userPayload: IJwtPayload) {
+    const transactionList = await this.transactionRepository.findBy({
+      id: In(transactionIds),
+      transaction_status_id: TransactionStatusEnum.PENDING,
+    });
+
+    if(!transactionList.length) throw new BadRequestException('transaction not found!');
+
+    for (const [index, transaction] of transactionList.entries()) {
+        const transactionDetailList = await this.transactionDetailRepository.findBy({
+            transaction_id: transaction.id,
+        });
+
+        let amount = new Decimal(0);
+        transactionDetailList.forEach((transactionDetail) => {
+          amount = amount.plus(transactionDetail.final_price);
+        })
+
+        const system_fee_percent = new Decimal(this.configService.get<string>("SYSTEM_FEE_PRECENT") ?? 0); // it should be fetch systems service;
+        const system_fee_amount = new Decimal(system_fee_percent).mul(amount).div(100);
+        const final_amount = new Decimal(amount).minus(system_fee_amount);
+    
+        transactionList[index].amount = amount;
+        transactionList[index].system_fee_percent = system_fee_percent;
+        transactionList[index].system_fee_amount = system_fee_amount;
+        transactionList[index].final_amount = final_amount;
+      }
+      
+      await this.transactionRepository.save(transactionList);
   }
 
 }

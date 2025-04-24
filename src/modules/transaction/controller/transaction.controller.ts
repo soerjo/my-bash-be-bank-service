@@ -17,6 +17,7 @@ import { GetTransactionLogDto } from '../dto/find-transaction-log.dto';
 import { GetTopCustomerPageDto } from '../dto/get-top-customer.dto';
 import { GetBankBalanceDto } from '../dto/get-bank-balance.dto';
 import { Request } from 'express';
+import { SyncStorePrice } from '../dto/sync-store-price.dto';
 
 @ApiTags('Transaction')
 @Controller('transaction')
@@ -76,6 +77,14 @@ export class TransactionController {
   @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
   cancelTransactionDetail(@Body() dto: UpdateTransactionStatusDto, @CurrentUser() userPayload: IJwtPayload) {
     return this.transactionService.cancelBulkTransactionDetail(dto.transaction_id, userPayload);
+  }
+
+  @Patch('sync-store-price')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles([ RoleEnum.SYSTEM_ADMIN, RoleEnum.ADMIN_BANK ])
+  syncStorePrice(@Body() dto: SyncStorePrice, @CurrentUser() userPayload: IJwtPayload) {
+    return this.transactionService.syncStorePrice(dto, userPayload);
   }
 
   @Post('deposit/thing')
