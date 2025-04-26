@@ -291,12 +291,19 @@ export class TransactionService {
 
     const {data, meta} = await this.transactionRepository.findAll(dto);
     const transactionIds = data.map((transaction) => transaction.id);
-    const transactionDetails = await this.transactionDetailRepository.findBy({transaction_id: In(transactionIds)});
+    const queryTransactionDetails = this.transactionDetailRepository.findBy({transaction_id: In(transactionIds)});
+    const queryCustomerDetails = this.customerService.getByIds(data.map((transaction) => transaction.customer_id));
+
+    const [transactionDetails, customersDetails] = await Promise.all([queryTransactionDetails, queryCustomerDetails]);
 
     const processedData = data.map((transaction) => {
       const transactionDetail = transactionDetails.filter((detail) => detail.transaction_id === transaction.id);
+      const customerDetail = customersDetails.find((customer) => customer.id === transaction.customer_id);
       return {
         ...transaction,
+        customer_id: customerDetail.id,
+        customer_account_number: customerDetail.public_account_number,
+        customer_name: customerDetail.name,
         transaction_detail: transactionDetail,
       };
     });
