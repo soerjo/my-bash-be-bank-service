@@ -327,6 +327,7 @@ export class TransactionService {
       return {
         id: data.customer_id,
         full_name: customerTransaction.full_name,
+        customer_account_number: customerTransaction.public_account_number,
         name: customerTransaction.name,
         amount: data?.total_balance,
       }
